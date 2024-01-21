@@ -9,7 +9,7 @@ from utils import get_last_batch_hour, process_urls, delete_files_prefix, remove
 
 if __name__ == "__main__":
     print("---- Remove and create local data folder ----")
-    current_folder = "./data-" + datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    current_folder = "./data-" + datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
     remove_and_create_folder(current_folder, True)
 
     print("---- Get already processed files ----")
@@ -17,7 +17,7 @@ if __name__ == "__main__":
     processed_files = []
     for package in PACKAGES:
         print(package['dataset_id'])
-        r = requests.get(f"{DATAGOUV_URL}/api/1/datasets/" + package["dataset_id"])
+        r = requests.get(f"{DATAGOUV_URL}/api/1/datasets/{package['dataset_id']})
         data = r.json()
         for res in data["resources"]:
             if "latest" not in res["title"]:
@@ -95,7 +95,7 @@ if __name__ == "__main__":
     did_res = {}
     for package in PACKAGES:
         print(package['dataset_id'])
-        r = requests.get(f"{DATAGOUV_URL}/api/1/datasets/" + package["dataset_id"])
+        r = requests.get(f"{DATAGOUV_URL}/api/1/datasets/{package['dataset_id']})
         data = r.json()
         for res in data["resources"]:
             res_list.append({"title": res["title"], "id": res["id"], "did": package["dataset_id"]})
