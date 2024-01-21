@@ -32,6 +32,7 @@ if __name__ == "__main__":
     tested_batches = {}
     tested_batches["arpege"] = check_if_data_available(batches, "arpege")
     tested_batches["arome"] = check_if_data_available(batches, "arome")
+    print(tested_batches)
 
     print("---- Construct all possibles files ----")
     list_files = []
@@ -73,6 +74,7 @@ if __name__ == "__main__":
 
     if len(to_get) == 0:
         print("---- no new data ----")
+        remove_and_create_folder(current_folder, False)
         sys.exit()
 
     print("---- Shuffle and process batch of 50 files ----")

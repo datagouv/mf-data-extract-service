@@ -231,7 +231,7 @@ def check_if_data_available(batches, type_package):
     if type_package == "arpege":
         r = requests.get("https://public-api.meteofrance.fr/previnum/DPPaquetARPEGE/models/ARPEGE/grids/0.25/packages/IP1")
     else:
-        r = requests.get("https://public-api.meteofrance.fr/previnum/DPPaquetARPEGE/models/ARPEGE/grids/0.25/packages/IP1")
+        r = requests.get("https://public-api.meteofrance.fr/previnum/DPPaquetAROME/models/AROME/grids/0.025/packages/HP1")
 
     new_batches = []
     try:
