@@ -17,7 +17,7 @@ if __name__ == "__main__":
     processed_files = []
     for package in PACKAGES:
         print(package['dataset_id'])
-        r = requests.get(f"{DATAGOUV_URL}/api/1/datasets/{package['dataset_id']})
+        r = requests.get(f"{DATAGOUV_URL}/api/1/datasets/{package['dataset_id']}")
         data = r.json()
         for res in data["resources"]:
             if "latest" not in res["title"]:
@@ -95,7 +95,7 @@ if __name__ == "__main__":
     did_res = {}
     for package in PACKAGES:
         print(package['dataset_id'])
-        r = requests.get(f"{DATAGOUV_URL}/api/1/datasets/{package['dataset_id']})
+        r = requests.get(f"{DATAGOUV_URL}/api/1/datasets/{package['dataset_id']}")
         data = r.json()
         for res in data["resources"]:
             res_list.append({"title": res["title"], "id": res["id"], "did": package["dataset_id"]})
