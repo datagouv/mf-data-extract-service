@@ -9,7 +9,7 @@ from utils import get_last_batch_hour, process_urls, delete_files_prefix, remove
 
 if __name__ == "__main__":
     print("---- Remove and create local data folder ----")
-    remove_and_create_folder("./data")
+    remove_and_create_folder("./data-" + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
     print("---- Get already processed files ----")
     res_list = []
