@@ -121,7 +121,7 @@ def get_last_batch_hour():
     return batch_time
 
 
-def download_url(url, meta_urls, retry):
+def download_url(url, meta_urls, retry, current_folder):
     if retry != 0:
         if retry != 5: print("Retry " + str(5-retry) + "for " + url)
         try:
@@ -131,17 +131,17 @@ def download_url(url, meta_urls, retry):
 
             with requests.get(url, stream=True, headers=headers, timeout=60) as r:
                 r.raise_for_status()
-                with open("data/" + filename, 'wb') as f:
+                with open(current_folder + "/" + filename, 'wb') as f:
                     for chunk in r.iter_content(chunk_size=32768): 
                         f.write(chunk)
 
         except Exception as e:
-            download_url(url, meta_urls, retry-1)
+            download_url(url, meta_urls, current_folder, retry-1)
     else:
         print(f"----- EXCEPTION: {url} ------")
 
 
-def send_to_minio(url, meta_urls):
+def send_to_minio(url, meta_urls, current_folder):
     send_files(
         MINIO_URL=MINIO_URL,
         MINIO_BUCKET=MINIO_BUCKET,
@@ -149,7 +149,7 @@ def send_to_minio(url, meta_urls):
         MINIO_PASSWORD=MINIO_PASSWORD,
         list_files=[
             {
-                "source_path": "data/",
+                "source_path": current_folder + "/",
                 "source_name": meta_urls[url + ":filename"],
                 "dest_path": (
                     "pnt/" + url.split("referencetime=")[1].split("&")[0] + "/" + \
@@ -165,7 +165,7 @@ def send_to_minio(url, meta_urls):
     print(f"sent to minio: {url}")
     
 
-def sent_to_datagouv(url, meta_urls):
+def sent_to_datagouv(url, meta_urls, current_folder):
     body = {
         "title": meta_urls[url + ":filename"],
         'url': (
@@ -193,13 +193,13 @@ def sent_to_datagouv(url, meta_urls):
         print(f"url {url} ok in data.gouv.fr")
             
         
-def process_url(url, meta_urls):
-    download_url(url, meta_urls, 5)
-    send_to_minio(url, meta_urls)
-    sent_to_datagouv(url, meta_urls)
+def process_url(url, meta_urls, current_folder):
+    download_url(url, meta_urls, 5, current_folder)
+    send_to_minio(url, meta_urls, current_folder)
+    sent_to_datagouv(url, meta_urls, current_folder)
 
     
-def process_urls(urls, meta_urls, max_workers, delay_between_batches, start):
+def process_urls(urls, meta_urls, current_folder, max_workers, delay_between_batches, start):
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         # Divisez les URL en paquets de X
         url_batches = [urls[i:i+BATCH_URL_SIZE] for i in range(0, len(urls), BATCH_URL_SIZE)]
@@ -208,7 +208,7 @@ def process_urls(urls, meta_urls, max_workers, delay_between_batches, start):
             end = time.time()
             print(end - start)
             # Lancez les requêtes pour chaque URL dans le paquet simultanément
-            futures = [executor.submit(process_url, url, meta_urls) for url in batch]
+            futures = [executor.submit(process_url, url, meta_urls, current_folder) for url in batch]
             # Attendez que toutes les requêtes dans le paquet soient terminées
             #concurrent.futures.wait(futures)
 

@@ -71,7 +71,6 @@ if __name__ == "__main__":
 
     # Remplacez ceci par votre tableau d'URL
 
-
     if len(to_get) == 0:
         print("---- no new data ----")
         remove_and_create_folder(current_folder, False)
@@ -85,7 +84,7 @@ if __name__ == "__main__":
     max_workers = 200 
     delay_between_batches = 60  # Délai en secondes entre les paquets
 
-    process_urls(to_get_url, meta_urls, max_workers, delay_between_batches, start)
+    process_urls(to_get_url, meta_urls, current_folder, max_workers, delay_between_batches, start)
     end = time.time()
     print(end - start)
 
@@ -112,25 +111,27 @@ if __name__ == "__main__":
 
     print("---- Create or Replace latest files in data.gouv ----")
     for item in type_res:
-        body = {
-            "title": item + "__" + max(type_res[item]) + "__latest.grib2",
-            'url': (
+        url = (
                 f"https://{MINIO_URL}/{MINIO_BUCKET}/pnt/" + \
                 max(type_res[item]) + "/" + \
                 item.split("__")[0] + "/" + \
                 item.split("__")[1] + "/" + \
                 item.split("__")[2] + "/" + \
                 item + "__" + max(type_res[item]) + ".grib2"
-            ),
-            'filetype': 'remote'
-        }
-        if item in latest_res:
-            # put
-            r = requests.put(f"{DATAGOUV_URL}/api/1/datasets/{did_res[item]}/resources/{latest_res[item]}/", json=body, headers={"X-API-KEY": APIKEY_DATAGOUV})
+        )
+        if url in to_get_url:
+            body = {
+                "title": item + "__" + max(type_res[item]) + "__latest.grib2",
+                'url': url,
+                'filetype': 'remote'
+            }
+            if item in latest_res:
+                # put
+                r = requests.put(f"{DATAGOUV_URL}/api/1/datasets/{did_res[item]}/resources/{latest_res[item]}/", json=body, headers={"X-API-KEY": APIKEY_DATAGOUV})
 
-        else:
-            # post
-            r = requests.post(f"{DATAGOUV_URL}/api/1/datasets/{did_res[item]}/resources/", json=body, headers={"X-API-KEY": APIKEY_DATAGOUV})
+            else:
+                # post
+                r = requests.post(f"{DATAGOUV_URL}/api/1/datasets/{did_res[item]}/resources/", json=body, headers={"X-API-KEY": APIKEY_DATAGOUV})
 
     print("---- Delete old resources of data.gouv.fr for each dataset ----")
     res_list = []
