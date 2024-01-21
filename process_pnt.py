@@ -5,7 +5,7 @@ import time
 import sys
 
 from config import PACKAGES, MAX_LAST_BATCHES, MINIO_BUCKET, MINIO_PASSWORD, MINIO_URL, MINIO_USER, APIKEY_DATAGOUV, DATAGOUV_URL
-from utils import get_last_batch_hour, process_urls, delete_files_prefix, remove_and_create_folder
+from utils import get_last_batch_hour, process_urls, delete_files_prefix, remove_and_create_folder, check_if_data_available
 
 if __name__ == "__main__":
     print("---- Remove and create local data folder ----")
@@ -29,29 +29,32 @@ if __name__ == "__main__":
         batches.append((get_last_batch_hour() - timedelta(hours=6*i)).strftime("%Y-%m-%dT%H:%M:%SZ"))
 
     print(batches)
+    tested_batches = {}
+    tested_batches["arpege"] = check_if_data_available(batches, "arpege")
+    tested_batches["arome"] = check_if_data_available(batches, "arome")
 
     print("---- Construct all possibles files ----")
     list_files = []
     meta_urls = {}
     for batch in batches:
         for family_package in PACKAGES:
-            for package in family_package["packages"]:
-                for timeslot in package["time"]:
-                    headers = {"Content-Type": "application/json; charset=utf-8", "apikey": family_package["apikey"] }
-                    url = (
-                        family_package["base_url"] + "/" + family_package["grid"] + \
-                        "/packages/" + package["name"] + "/" + family_package["product"] + \
-                        "?&referencetime=" + batch + "&time=" + timeslot + "&format=grib2" 
-                    )
-                    filename = (
-                        family_package["type_package"] + "__" + family_package["grid"].replace("0.", "0") + \
-                        "__" + package["name"] + "__" + timeslot + "__" + batch + ".grib2"
-                    )
-                    list_files.append(filename)
-                    meta_urls[url+":headers"] = headers
-                    meta_urls[url+":filename"] = filename                    
-                    meta_urls[filename+":url"] = url
-
+            if batch in tested_batches[family_package["type_package"]]:
+                for package in family_package["packages"]:
+                    for timeslot in package["time"]:
+                        headers = {"Content-Type": "application/json; charset=utf-8", "apikey": family_package["apikey"] }
+                        url = (
+                            family_package["base_url"] + "/" + family_package["grid"] + \
+                            "/packages/" + package["name"] + "/" + family_package["product"] + \
+                            "?&referencetime=" + batch + "&time=" + timeslot + "&format=grib2" 
+                        )
+                        filename = (
+                            family_package["type_package"] + "__" + family_package["grid"].replace("0.", "0") + \
+                            "__" + package["name"] + "__" + timeslot + "__" + batch + ".grib2"
+                        )
+                        list_files.append(filename)
+                        meta_urls[url+":headers"] = headers
+                        meta_urls[url+":filename"] = filename                    
+                        meta_urls[filename+":url"] = url
 
 
     print(str(len(list_files)) + " possible files")
