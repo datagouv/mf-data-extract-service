@@ -228,7 +228,7 @@ def remove_and_create_folder(folder_path, toCreate):
 
 
 def check_if_data_available(batches, type_package):
-    if type_package == "arpege"
+    if type_package == "arpege":
         r = requests.get("https://public-api.meteofrance.fr/previnum/DPPaquetARPEGE/models/ARPEGE/grids/0.25/packages/IP1")
     else:
         r = requests.get("https://public-api.meteofrance.fr/previnum/DPPaquetARPEGE/models/ARPEGE/grids/0.25/packages/IP1")

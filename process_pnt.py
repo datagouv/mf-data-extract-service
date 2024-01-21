@@ -80,7 +80,7 @@ if __name__ == "__main__":
 
     start = time.time()
 
-    max_workers = 200  # Nombre maximal de requêtes simultanées
+    max_workers = 200 
     delay_between_batches = 60  # Délai en secondes entre les paquets
 
     process_urls(to_get_url, meta_urls, max_workers, delay_between_batches, start)
