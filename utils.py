@@ -217,10 +217,11 @@ def process_urls(urls, meta_urls, max_workers, delay_between_batches, start):
                 time.sleep(delay_between_batches)
 
 
-def remove_and_create_folder(folder_path):
+def remove_and_create_folder(folder_path, toCreate):
     if os.path.exists(folder_path):
         shutil.rmtree(folder_path)
         print(f"Folder '{folder_path}' removed.")
 
-    os.makedirs(folder_path)
-    print(f"Folder '{folder_path}' created.")
+    if toCreate:
+        os.makedirs(folder_path)
+        print(f"Folder '{folder_path}' created.")

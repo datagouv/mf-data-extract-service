@@ -9,7 +9,8 @@ from utils import get_last_batch_hour, process_urls, delete_files_prefix, remove
 
 if __name__ == "__main__":
     print("---- Remove and create local data folder ----")
-    remove_and_create_folder("./data-" + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    current_folder = "./data-" + datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    remove_and_create_folder(current_folder, True)
 
     print("---- Get already processed files ----")
     res_list = []
@@ -171,3 +172,6 @@ if __name__ == "__main__":
             MINIO_PASSWORD=MINIO_PASSWORD,
             prefix="pnt/"+folder
         )
+
+    print("---- Delete local data folder ----")
+    remove_and_create_folder(current_folder, False)
