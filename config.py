@@ -15,7 +15,7 @@ APIKEY_ARPEGE = os.environ.get("APIKEY_ARPEGE")
 
 DATAGOUV_URL="https://demo.data.gouv.fr"
 # Nb of batch we want to retrieve (every 6 hours)
-MAX_LAST_BATCHES = 1
+MAX_LAST_BATCHES = 2
 BATCH_URL_SIZE = 50
 
 # PACKAGES = [

@@ -9,7 +9,7 @@ import concurrent.futures
 import time
 import shutil
 
-from config import MINIO_BUCKET, MINIO_URL, MINIO_USER, MINIO_PASSWORD, PACKAGES, APIKEY_DATAGOUV, BATCH_URL_SIZE
+from config import MINIO_BUCKET, MINIO_URL, MINIO_USER, MINIO_PASSWORD, PACKAGES, APIKEY_DATAGOUV, BATCH_URL_SIZE, APIKEY_AROME, APIKEY_ARPEGE
 
 
 class File(TypedDict):
@@ -229,9 +229,9 @@ def remove_and_create_folder(folder_path, toCreate):
 
 def check_if_data_available(batches, type_package):
     if type_package == "arpege":
-        r = requests.get("https://public-api.meteofrance.fr/previnum/DPPaquetARPEGE/models/ARPEGE/grids/0.25/packages/IP1")
+        r = requests.get("https://public-api.meteofrance.fr/previnum/DPPaquetARPEGE/models/ARPEGE/grids/0.25/packages/IP1", headers={"apikey": APIKEY_ARPEGE})
     else:
-        r = requests.get("https://public-api.meteofrance.fr/previnum/DPPaquetAROME/models/AROME/grids/0.025/packages/HP1")
+        r = requests.get("https://public-api.meteofrance.fr/previnum/DPPaquetAROME/models/AROME/grids/0.025/packages/HP1", headers={"apikey": APIKEY_AROME})
 
     new_batches = []
     try:
