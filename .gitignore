@@ -1,4 +1,4 @@
 .env
 data/
 __pycache__/
-test.http
+log.log
