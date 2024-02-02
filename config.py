@@ -6,6 +6,7 @@ dotenv_path = join(dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
 MINIO_URL = os.environ.get("MINIO_URL")
+MINIO_PUBLIC_URL = os.environ.get("MINIO_PUBLIC_URL")
 MINIO_BUCKET = os.environ.get("MINIO_BUCKET")
 MINIO_USER = os.environ.get("MINIO_USER")
 MINIO_PASSWORD = os.environ.get("MINIO_PASSWORD")

@@ -23,6 +23,7 @@ from config import (
     MINIO_BUCKET,
     MINIO_PASSWORD,
     MINIO_URL,
+    MINIO_PUBLIC_URL,
     MINIO_USER,
     MINIO_SECURE,
     PACKAGES,
@@ -510,7 +511,7 @@ def publish_on_datagouv(current_folder, ctx):
                     body = {
                         "title": filename,
                         'url': (
-                            f"https://{MINIO_URL}/{MINIO_BUCKET}/" + properties_minio[res_name+":path"]
+                            f"https://{MINIO_PUBLIC_URL}/{MINIO_BUCKET}/" + properties_minio[res_name+":path"]
                         ),
                         'type"': 'main',
                         'filetype': 'remote',
