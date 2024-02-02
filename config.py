@@ -9,11 +9,13 @@ MINIO_URL = os.environ.get("MINIO_URL")
 MINIO_BUCKET = os.environ.get("MINIO_BUCKET")
 MINIO_USER = os.environ.get("MINIO_USER")
 MINIO_PASSWORD = os.environ.get("MINIO_PASSWORD")
+MINIO_SECURE = os.environ.get("MINIO_SECURE")
 APIKEY_DATAGOUV = os.environ.get("APIKEY_DATAGOUV")
 APIKEY_AROME = os.environ.get("APIKEY_AROME")
 APIKEY_ARPEGE = os.environ.get("APIKEY_ARPEGE")
 APIKEY_AROME_OM = os.environ.get("APIKEY_AROME_OM")
 APIKEY_VAGUE_SURCOTE = os.environ.get("APIKEY_VAGUE_SURCOTE")
+
 
 DATAGOUV_URL="https://demo.data.gouv.fr"
 # Nb of batch we want to retrieve (every 6 hours)

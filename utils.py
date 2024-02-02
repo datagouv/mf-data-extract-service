@@ -16,12 +16,7 @@ from minio import Minio
 from minio.error import S3Error
 
 from config import (
-    APIKEY_AROME,
-    APIKEY_AROME_OM,
-    APIKEY_ARPEGE,
-    APIKEY_VAGUE_SURCOTE,
     APIKEY_DATAGOUV,
-    BATCH_URL_SIZE,
     BATCH_URL_SIZE_PACKAGE,
     DATAGOUV_URL,
     MAX_LAST_BATCHES,
@@ -29,6 +24,7 @@ from config import (
     MINIO_PASSWORD,
     MINIO_URL,
     MINIO_USER,
+    MINIO_SECURE,
     PACKAGES,
 )
 
@@ -52,7 +48,7 @@ def get_minio_file(
         MINIO_URL,
         access_key=MINIO_USER,
         secret_key=MINIO_PASSWORD,
-        secure=True,
+        secure=MINIO_SECURE,
     )
 
     found = client.bucket_exists(MINIO_BUCKET)
@@ -71,7 +67,7 @@ def send_files(
         MINIO_URL,
         access_key=MINIO_USER,
         secret_key=MINIO_PASSWORD,
-        secure=True,
+        secure=MINIO_SECURE,
     )
 
     found = client.bucket_exists(MINIO_BUCKET)
@@ -109,7 +105,7 @@ def get_files_from_prefix(
         MINIO_URL,
         access_key=MINIO_USER,
         secret_key=MINIO_PASSWORD,
-        secure=True,
+        secure=MINIO_SECURE,
     )
     found = client.bucket_exists(MINIO_BUCKET)
     if found:
@@ -134,7 +130,7 @@ def delete_files_prefix(
         MINIO_URL,
         access_key=MINIO_USER,
         secret_key=MINIO_PASSWORD,
-        secure=True,
+        secure=MINIO_SECURE,
     )
     
     try:
