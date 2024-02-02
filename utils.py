@@ -27,6 +27,7 @@ from config import (
     MINIO_USER,
     MINIO_SECURE,
     PACKAGES,
+    ENV_NAME,
 )
 
 
@@ -433,15 +434,15 @@ def reorder_resources(ctx):
     for package in PACKAGES:
         if package["type_package"] in ctx.split(","):
             res_list = []
-            r = requests.get(f"{DATAGOUV_URL}/api/1/datasets/" + package["dataset_id"])
+            r = requests.get(f"{DATAGOUV_URL}/api/1/datasets/" + package["dataset_id_" + ENV_NAME])
             data = r.json()
             for res in data["resources"]:
-                res_list.append({"title": res["title"], "id": res["id"], "did": package["dataset_id"]})
+                res_list.append({"title": res["title"], "id": res["id"], "did": package["dataset_id_" + ENV_NAME]})
             sorted_data = sorted(res_list, key=lambda x: x['title'])
             body = [{"id": x["id"]} for x in sorted_data]
-            r = requests.put(f"{DATAGOUV_URL}/api/1/datasets/{package['dataset_id']}/resources/", json=body, headers={"X-API-KEY": APIKEY_DATAGOUV})
+            r = requests.put(f"{DATAGOUV_URL}/api/1/datasets/{package['dataset_id_' + ENV_NAME]}/resources/", json=body, headers={"X-API-KEY": APIKEY_DATAGOUV})
             if r.status_code == 200:
-                logging.info(f"Reorder successful for dataset {package['dataset_id']}")
+                logging.info(f"Reorder successful for dataset {package['dataset_id_' + ENV_NAME]}")
             else:
                 logging.info(f"Error on reordering, status code {r.status_code}")
 
@@ -500,7 +501,7 @@ def publish_on_datagouv(current_folder, ctx):
 
     for package in PACKAGES:
         if package["type_package"] in ctx.split(","):
-            r = requests.get(f"{DATAGOUV_URL}/api/1/datasets/{package['dataset_id']}")
+            r = requests.get(f"{DATAGOUV_URL}/api/1/datasets/{package['dataset_id_' + ENV_NAME]}")
             resources = r.json()["resources"]
             for resource in resources:
                 res_name = "__".join(resource["title"].split("/")[-1].split(".")[0].split("__")[:-1])
@@ -519,7 +520,7 @@ def publish_on_datagouv(current_folder, ctx):
                     }
                     if os.path.exists(current_folder + '/' + filename):
                         body['filesize'] = os.path.getsize(current_folder + '/' + filename)
-                    r_put = requests.put(f"{DATAGOUV_URL}/api/1/datasets/{package['dataset_id']}/resources/{resource['id']}/", json=body, headers={"X-API-KEY": APIKEY_DATAGOUV})
+                    r_put = requests.put(f"{DATAGOUV_URL}/api/1/datasets/{package['dataset_id_' + ENV_NAME]}/resources/{resource['id']}/", json=body, headers={"X-API-KEY": APIKEY_DATAGOUV})
                     if r_put.status_code == 200:
                         logging.info(f"{res_name} refered in data.gouv.fr")
     return reorder

@@ -5,6 +5,7 @@ import os
 dotenv_path = join(dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
+ENV_NAME = os.environ.get("ENV_NAME")
 MINIO_URL = os.environ.get("MINIO_URL")
 MINIO_PUBLIC_URL = os.environ.get("MINIO_PUBLIC_URL")
 MINIO_BUCKET = os.environ.get("MINIO_BUCKET")
@@ -16,9 +17,8 @@ APIKEY_AROME = os.environ.get("APIKEY_AROME")
 APIKEY_ARPEGE = os.environ.get("APIKEY_ARPEGE")
 APIKEY_AROME_OM = os.environ.get("APIKEY_AROME_OM")
 APIKEY_VAGUE_SURCOTE = os.environ.get("APIKEY_VAGUE_SURCOTE")
+DATAGOUV_URL= os.environ.get("DATAGOUV_URL")
 
-
-DATAGOUV_URL="https://demo.data.gouv.fr"
 # Nb of batch we want to retrieve (every 6 hours)
 MAX_LAST_BATCHES = 3
 BATCH_URL_SIZE = 50
@@ -30,30 +30,12 @@ BATCH_URL_SIZE_PACKAGE = {
     "vague-surcote": 90
 }
 
-# PACKAGES = [
-#     {
-#         "type_package": "arome",
-#         "detail_package": None,
-#         "dataset_id": "65aade5a97e39e6c4cae5252",
-#         "apikey": APIKEY_AROME,
-#         "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetAROME/models/AROME/grids",
-#         "product": "productARO",
-#         "grid": "0.01",
-#         "packages": [
-#             {
-#                 "name": "SP1",
-#                 "time": ['01H', '02H']
-#             }
-#         ]
-#     }
-# ]
-
-
 PACKAGES = [
     {
         "type_package": "vague-surcote",
         "detail_package": "MFWAM",
-        "dataset_id": "65b68c83b833790f93a4ab27",
+        "dataset_id_dev": "65b68c83b833790f93a4ab27",
+        "dataset_id_prod": "65bd1a505a5b412989a84ca7",
         "apikey": APIKEY_VAGUE_SURCOTE,
         "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/MFWAM/grids",
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/MFWAM/grids/0.025/packages/SP1",
@@ -69,7 +51,8 @@ PACKAGES = [
     {
         "type_package": "vague-surcote",
         "detail_package": "MFWAM",
-        "dataset_id": "65b68c841a2bd22881b8e487",
+        "dataset_id_dev": "65b68c841a2bd22881b8e487",
+        "dataset_id_prod": "65bd1a2957e1cc7c9625e7b5",
         "apikey": APIKEY_VAGUE_SURCOTE,
         "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/MFWAM/grids",
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/MFWAM/grids/0.1/packages/SP1",
@@ -85,7 +68,8 @@ PACKAGES = [
     {
         "type_package": "vague-surcote",
         "detail_package": "MFWAM",
-        "dataset_id": "65b68c841a2bd22881b8e488",
+        "dataset_id_dev": "65b68c841a2bd22881b8e488",
+        "dataset_id_prod": "65bd19fe0d61026813636c33",
         "apikey": APIKEY_VAGUE_SURCOTE,
         "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/MFWAM/grids",
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/MFWAM/grids/0.5/packages/SP1",
@@ -101,7 +85,8 @@ PACKAGES = [
     {
         "type_package": "vague-surcote",
         "detail_package": "WW3-MARP",
-        "dataset_id": "65b68c840053e6459a859ccf",
+        "dataset_id_dev": "65b68c840053e6459a859ccf",
+        "dataset_id_prod": "65bd19a20a9351d1cbe9a090",
         "apikey": APIKEY_VAGUE_SURCOTE,
         "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/WW3-MARP/grids",
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/WW3-MARP/grids/0.1/packages/SP1",
@@ -117,7 +102,8 @@ PACKAGES = [
     {
         "type_package": "vague-surcote",
         "detail_package": "WW3-WARP",
-        "dataset_id": "65b68c8580a75b6c6bae3d66",
+        "dataset_id_dev": "65b68c8580a75b6c6bae3d66",
+        "dataset_id_prod": "65bd197cd4222b0c96db759e",
         "apikey": APIKEY_VAGUE_SURCOTE,
         "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/WW3-WARP/grids",
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/WW3-WARP/grids/0.1/packages/SP1",
@@ -133,7 +119,8 @@ PACKAGES = [
     {
         "type_package": "vague-surcote",
         "detail_package": "WW3-MARO",
-        "dataset_id": "65b68c852bb8441329433a30",
+        "dataset_id_dev": "65b68c852bb8441329433a30",
+        "dataset_id_prod": "534fff8ba3a7292c64a77ed4",
         "apikey": APIKEY_VAGUE_SURCOTE,
         "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/WW3-MARO/grids",
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/WW3-MARO/grids/0.1/packages/SP1",
@@ -149,7 +136,8 @@ PACKAGES = [
     {
         "type_package": "vague-surcote",
         "detail_package": "HYCOM2D-MARP",
-        "dataset_id": "65b68c8580a75b6c6bae3d67",
+        "dataset_id_dev": "65b68c8580a75b6c6bae3d67",
+        "dataset_id_prod": "65bd183c9ec6ae3f87a5334a",
         "apikey": APIKEY_VAGUE_SURCOTE,
         "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/HYCOM2D-MARP/grids",
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/HYCOM2D-MARP/grids/0.04/packages/SP1",
@@ -165,7 +153,8 @@ PACKAGES = [
     {
         "type_package": "vague-surcote",
         "detail_package": "HYCOM2D-WARP",
-        "dataset_id": "65b68c850e237844c20fd501",
+        "dataset_id_dev": "65b68c850e237844c20fd501",
+        "dataset_id_prod": "65bd17fe9ec6ae3f87a53349",
         "apikey": APIKEY_VAGUE_SURCOTE,
         "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/HYCOM2D-WARP/grids",
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/HYCOM2D-WARP/grids/0.04/packages/SP1",
@@ -181,7 +170,8 @@ PACKAGES = [
     {
         "type_package": "vague-surcote",
         "detail_package": "HYCOM2D-WARO",
-        "dataset_id": "65b68c8545f1789c428c8907",
+        "dataset_id_dev": "65b68c8545f1789c428c8907",
+        "dataset_id_prod": "65bd17b9775b5222832d67a4",
         "apikey": APIKEY_VAGUE_SURCOTE,
         "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/HYCOM2D-WARO/grids",
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/HYCOM2D-WARO/grids/0.04/packages/SP1",
@@ -197,7 +187,8 @@ PACKAGES = [
     {
         "type_package": "vague-surcote",
         "detail_package": "HYCOM2D-MARO",
-        "dataset_id": "65b68c860e237844c20fd502",
+        "dataset_id_dev": "65b68c860e237844c20fd502",
+        "dataset_id_prod": "65bd17779ec6ae3f87a53348",
         "apikey": APIKEY_VAGUE_SURCOTE,
         "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/HYCOM2D-MARO/grids",
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/HYCOM2D-MARO/grids/0.04/packages/SP1",
@@ -213,7 +204,8 @@ PACKAGES = [
     {
         "type_package": "arome-om",
         "detail_package": "ANTIL",
-        "dataset_id": "65b68c862bb8441329433a31",
+        "dataset_id_dev": "65b68c862bb8441329433a31",
+        "dataset_id_prod": "65bd162b9dc0d31edfabc2b9",
         "apikey": APIKEY_AROME_OM,
         "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetAROME-OM/v1/models/AROME-OM-ANTIL/grids",
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetAROME-OM/models/AROME-OM-ANTIL/grids/0.025/packages/IP1",
@@ -269,7 +261,8 @@ PACKAGES = [
     {
         "type_package": "arome-om",
         "detail_package": "GUYANE",
-        "dataset_id": "65b68c860053e6459a859cd0",
+        "dataset_id_dev": "65b68c860053e6459a859cd0",
+        "dataset_id_prod": "65bd15ef0e2f269519fe03fe",
         "apikey": APIKEY_AROME_OM,
         "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetAROME-OM/models/AROME-OM-GUYANE/grids",
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetAROME-OM/models/AROME-OM-GUYANE/grids/0.025/packages/IP1",
@@ -325,7 +318,8 @@ PACKAGES = [
     {
         "type_package": "arome-om",
         "detail_package": "INDIEN",
-        "dataset_id": "65b68c860053e6459a859cd1",
+        "dataset_id_dev": "65b68c860053e6459a859cd1",
+        "dataset_id_prod": "65bd1560c73941a5e0ec1891",
         "apikey": APIKEY_AROME_OM,
         "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetAROME-OM/models/AROME-OM-INDIEN/grids",
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetAROME-OM/models/AROME-OM-INDIEN/grids/0.025/packages/IP1",
@@ -381,7 +375,8 @@ PACKAGES = [
     {
         "type_package": "arome-om",
         "detail_package": "POLYN",
-        "dataset_id": "65b68c870e237844c20fd503",
+        "dataset_id_dev": "65b68c870e237844c20fd503",
+        "dataset_id_prod": "65bd1509cc112e6a1458ab95",
         "apikey": APIKEY_AROME_OM,
         "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetAROME-OM/models/AROME-OM-POLYN/grids",
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetAROME-OM/models/AROME-OM-POLYN/grids/0.025/packages/IP1",
@@ -437,7 +432,8 @@ PACKAGES = [
     {
         "type_package": "arome-om",
         "detail_package": "NCALED",
-        "dataset_id": "65b68c870e237844c20fd504",
+        "dataset_id_dev": "65b68c870e237844c20fd504",
+        "dataset_id_prod": "65bd14cca6919e97e9699b09",
         "apikey": APIKEY_AROME_OM,
         "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetAROME-OM/models/AROME-OM-NCALED/grids",
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetAROME-OM/models/AROME-OM-NCALED/grids/0.025/packages/IP1",
@@ -493,7 +489,8 @@ PACKAGES = [
     {
         "type_package": "arome",
         "detail_package": None,
-        "dataset_id": "65aade5a97e39e6c4cae5252",
+        "dataset_id_dev": "65aade5a97e39e6c4cae5252",
+        "dataset_id_prod": "65bd1247a6238f16e864fa80",
         "apikey": APIKEY_AROME,
         "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetAROME/models/AROME/grids",
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetAROME/models/AROME/grids/0.01/packages/SP1",
@@ -521,7 +518,8 @@ PACKAGES = [
     {
         "type_package": "arome",
         "detail_package": None,
-        "dataset_id": "65aadec3dc9e969fd00e71e8",
+        "dataset_id_dev": "65aadec3dc9e969fd00e71e8",
+        "dataset_id_prod": "65bd12d7bfd26e26804204cb",
         "apikey": APIKEY_AROME,
         "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetAROME/models/AROME/grids",
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetAROME/models/AROME/grids/0.025/packages/SP1",
@@ -577,7 +575,8 @@ PACKAGES = [
     {
         "type_package": "arpege",
         "detail_package": None,
-        "dataset_id": "65aaded8dc9e969fd00e71e9",
+        "dataset_id_dev": "65aaded8dc9e969fd00e71e9",
+        "dataset_id_prod": "65bd13b2eb9e79ab309f6e63",
         "apikey": APIKEY_ARPEGE,
         "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetARPEGE/models/ARPEGE/grids",
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetARPEGE/models/ARPEGE/grids/0.1/packages/IP1",
@@ -621,7 +620,8 @@ PACKAGES = [
     {
         "type_package": "arpege",
         "detail_package": None,
-        "dataset_id": "65aadeebdc9e969fd00e71ea",
+        "dataset_id_dev": "65aadeebdc9e969fd00e71ea",
+        "dataset_id_prod": "65b68c83b833790f93a4ab27",
         "apikey": APIKEY_ARPEGE,
         "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetARPEGE/models/ARPEGE/grids",
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetARPEGE/models/ARPEGE/grids/0.25/packages/IP1",
@@ -663,72 +663,3 @@ PACKAGES = [
         ]
     }
 ]
-
-
-
-# PACKAGES = [
-#     {
-#         "type_package": "vague-surcote",
-#         "detail_package": "MFWAM",
-#         "dataset_id": "65b68c83b833790f93a4ab27",
-#         "apikey": APIKEY_VAGUE_SURCOTE,
-#         "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/MFWAM/grids",
-#         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/MFWAM/grids/0.025/packages/SP1",
-#         "product": "productMFWAM",
-#         "grid": "0.025",
-#         "packages": [
-#             {
-#                 "name": "SP1",
-#                 "time": ['001H', '002H', '003H', '004H']
-#             }
-#         ]
-#     },
-#     {
-#         "type_package": "arome-om",
-#         "detail_package": "GUYANE",
-#         "dataset_id": "65b68c860053e6459a859cd0",
-#         "apikey": APIKEY_AROME_OM,
-#         "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetAROME-OM/models/AROME-OM-GUYANE/grids",
-#         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetAROME-OM/models/AROME-OM-GUYANE/grids/0.025/packages/IP1",
-#         "product": "productOMGU",
-#         "grid": "0.025",
-#         "packages": [
-#            {
-#                 "name": "IP1",
-#                 "time": ['001H', '002H', '003H']
-#             }
-#         ]
-#     },
-#     {
-#         "type_package": "arome",
-#         "detail_package": None,
-#         "dataset_id": "65aade5a97e39e6c4cae5252",
-#         "apikey": APIKEY_AROME,
-#         "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetAROME/models/AROME/grids",
-#         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetAROME/models/AROME/grids/0.01/packages/SP1",
-#         "product": "productARO",
-#         "grid": "0.01",
-#         "packages": [
-#             {
-#                 "name": "SP1",
-#                 "time": ['01H', '02H', '03H', '04H', '05H']
-#             }
-#         ]
-#     },
-#     {
-#         "type_package": "arpege",
-#         "detail_package": None,
-#         "dataset_id": "65aaded8dc9e969fd00e71e9",
-#         "apikey": APIKEY_ARPEGE,
-#         "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetARPEGE/models/ARPEGE/grids",
-#         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetARPEGE/models/ARPEGE/grids/0.1/packages/IP1",
-#         "product": "productARP",
-#         "grid": "0.1",
-#         "packages": [
-#             {
-#                 "name": "IP1",
-#                 "time": ["000H012H", "013H024H", "025H036H"]
-#             },
-#         ]
-#     }
-# ]

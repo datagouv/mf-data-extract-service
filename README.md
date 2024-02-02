@@ -35,6 +35,8 @@ APIKEY_ARPEGE="API KEY"
 APIKEY_AROME="API KEY"
 APIKEY_AROME_OM="API KEY"
 APIKEY_VAGUE_SURCOTE="API KEY"
+DATAGOUV_URL="https://www.data.gouv.fr"
+ENV_NAME="prod"
 ```
 
 Installer les dépendances
