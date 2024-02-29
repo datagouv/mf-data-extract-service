@@ -486,7 +486,6 @@ def publish_on_datagouv(current_folder, ctx):
         MINIO_PASSWORD=MINIO_PASSWORD,
         prefix="pnt/",
     )
-
     properties_minio = {}
     for minio_path in get_list_files_updated:
         name = "__".join(minio_path.split("/")[-1].split(".")[0].split("__")[:-1])
@@ -498,29 +497,29 @@ def publish_on_datagouv(current_folder, ctx):
             if properties_minio[name] < date_file:
                 properties_minio[name] = date_file
                 properties_minio[name+":path"] = minio_path
-
     for package in PACKAGES:
         if package["type_package"] in ctx.split(","):
             r = requests.get(f"{DATAGOUV_URL}/api/1/datasets/{package['dataset_id_' + ENV_NAME]}")
             resources = r.json()["resources"]
             for resource in resources:
-                res_name = "__".join(resource["title"].split("/")[-1].split(".")[0].split("__")[:-1])
-                res_date = resource["title"].split("/")[-1].split(".")[0].split("__")[-1]
-                if((res_name in properties_minio) and (properties_minio[res_name] != res_date)):
-                    reorder = True
-                    filename = res_name + "__" + properties_minio[res_name] + ".grib2"
-                    body = {
-                        "title": filename,
-                        'url': (
-                            f"https://{MINIO_PUBLIC_URL}/{MINIO_BUCKET}/" + properties_minio[res_name+":path"]
-                        ),
-                        'type"': 'main',
-                        'filetype': 'remote',
-                        'format': 'grib2',
-                    }
-                    if os.path.exists(current_folder + '/' + filename):
-                        body['filesize'] = os.path.getsize(current_folder + '/' + filename)
-                    r_put = requests.put(f"{DATAGOUV_URL}/api/1/datasets/{package['dataset_id_' + ENV_NAME]}/resources/{resource['id']}/", json=body, headers={"X-API-KEY": APIKEY_DATAGOUV})
-                    if r_put.status_code == 200:
-                        logging.info(f"{res_name} refered in data.gouv.fr")
+                if resource["title"]:
+                    res_name = "__".join(resource["title"].split("/")[-1].split(".")[0].split("__")[:-1])
+                    res_date = resource["title"].split("/")[-1].split(".")[0].split("__")[-1]
+                    if(res_name and (res_name in properties_minio) and (properties_minio[res_name] != res_date)):
+                        reorder = True
+                        filename = res_name + "__" + properties_minio[res_name] + ".grib2"
+                        body = {
+                            "title": filename,
+                            'url': (
+                                f"https://{MINIO_PUBLIC_URL}/{MINIO_BUCKET}/" + properties_minio[res_name+":path"]
+                            ),
+                            'type"': 'main',
+                            'filetype': 'remote',
+                            'format': 'grib2',
+                        }
+                        if os.path.exists(current_folder + '/' + filename):
+                            body['filesize'] = os.path.getsize(current_folder + '/' + filename)
+                        r_put = requests.put(f"{DATAGOUV_URL}/api/1/datasets/{package['dataset_id_' + ENV_NAME]}/resources/{resource['id']}/", json=body, headers={"X-API-KEY": APIKEY_DATAGOUV})
+                        if r_put.status_code == 200:
+                            logging.info(f"{res_name} refered in data.gouv.fr")
     return reorder
