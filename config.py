@@ -262,7 +262,7 @@ PACKAGES = [
         "type_package": "arome-om",
         "detail_package": "GUYANE",
         "dataset_id_dev": "65b68c860053e6459a859cd0",
-        "dataset_id_prod": "65bd15ef0e2f269519fe03fe",
+        "dataset_id_prod": "65e0bd4b88e4fd88b989ba46",
         "apikey": APIKEY_AROME_OM,
         "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetAROME-OM/models/AROME-OM-GUYANE/grids",
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetAROME-OM/models/AROME-OM-GUYANE/grids/0.025/packages/IP1",
