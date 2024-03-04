@@ -219,7 +219,7 @@ def remove_and_create_folder(folder_path, toCreate):
 
 def check_if_data_available(batches, url, apikey):
     try:
-        r = requests.get(url, headers={"apikey": apikey})
+        r = requests.get(url, headers={"apikey": apikey}, timeout=10)
         new_batches = []
         try:
             if "links" in r.json():
