@@ -89,9 +89,9 @@ PACKAGES = [
         "dataset_id_prod": "65bd19a20a9351d1cbe9a090",
         "apikey": APIKEY_VAGUE_SURCOTE,
         "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/WW3-MARP/grids",
-        "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/WW3-MARP/grids/0.1/packages/SP1",
+        "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/WW3-MARP/grids/0.01/packages/SP1",
         "product": "productWMARP",
-        "grid": "0.1",
+        "grid": "0.01",
         "packages": [
             {
                 "name": "SP1",
@@ -106,9 +106,9 @@ PACKAGES = [
         "dataset_id_prod": "65bd197cd4222b0c96db759e",
         "apikey": APIKEY_VAGUE_SURCOTE,
         "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/WW3-WARP/grids",
-        "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/WW3-WARP/grids/0.1/packages/SP1",
+        "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/WW3-WARP/grids/0.01/packages/SP1",
         "product": "productWWARP",
-        "grid": "0.1",
+        "grid": "0.01",
         "packages": [
             {
                 "name": "SP1",
@@ -123,9 +123,9 @@ PACKAGES = [
         "dataset_id_prod": "65bd19226c4e3fcbf4948f99",
         "apikey": APIKEY_VAGUE_SURCOTE,
         "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/WW3-MARO/grids",
-        "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/WW3-MARO/grids/0.1/packages/SP1",
+        "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/WW3-MARO/grids/0.01/packages/SP1",
         "product": "productWMARO",
-        "grid": "0.1",
+        "grid": "0.01",
         "packages": [
             {
                 "name": "SP1",
