@@ -318,11 +318,11 @@ def construct_all_possible_files(batches, tested_batches):
                         url = (
                             family_package["base_url"] + "/" + family_package["grid"] + \
                             "/packages/" + package["name"] + "/" + family_package["product"] + \
-                            "?&referencetime=" + batch + "&time=" + timeslot + "&format=grib2" 
+                            "?&referencetime=" + batch + "&time=" + timeslot + "&format=" + family_package["extension"] 
                         )
                         filename = (
                             base_name + "__" + family_package["grid"].replace("0.", "0") + \
-                            "__" + package["name"] + "__" + timeslot + "__" + batch + ".grib2"
+                            "__" + package["name"] + "__" + timeslot + "__" + batch + "." + family_package["extension"] 
                         )
                         minio_path = (
                             "pnt/" + batch + "/" + base_path + "/" + family_package["grid"].replace("0.", "0") + "/" + \
@@ -507,7 +507,7 @@ def publish_on_datagouv(current_folder, ctx):
                     res_date = resource["title"].split("/")[-1].split(".")[0].split("__")[-1]
                     if(res_name and (res_name in properties_minio) and (properties_minio[res_name] != res_date)):
                         reorder = True
-                        filename = res_name + "__" + properties_minio[res_name] + ".grib2"
+                        filename = res_name + "__" + properties_minio[res_name] + "." + package["extension"]
                         body = {
                             "title": filename,
                             'url': (
@@ -515,7 +515,7 @@ def publish_on_datagouv(current_folder, ctx):
                             ),
                             'type"': 'main',
                             'filetype': 'remote',
-                            'format': 'grib2',
+                            'format': package["extension"],
                         }
                         if os.path.exists(current_folder + '/' + filename):
                             body['filesize'] = os.path.getsize(current_folder + '/' + filename)

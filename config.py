@@ -41,6 +41,7 @@ PACKAGES = [
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/MFWAM/grids/0.025/packages/SP1",
         "product": "productMFWAM",
         "grid": "0.025",
+        "extension": "grib2",
         "packages": [
             {
                 "name": "SP1",
@@ -58,6 +59,7 @@ PACKAGES = [
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/MFWAM/grids/0.1/packages/SP1",
         "product": "productMFWAM",
         "grid": "0.1",
+        "extension": "grib2",
         "packages": [
             {
                 "name": "SP1",
@@ -75,6 +77,7 @@ PACKAGES = [
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/MFWAM/grids/0.5/packages/SP1",
         "product": "productMFWAM",
         "grid": "0.5",
+        "extension": "grib2",
         "packages": [
             {
                 "name": "SP1",
@@ -92,6 +95,7 @@ PACKAGES = [
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/WW3-MARP/grids/0.01/packages/SP1",
         "product": "productWMARP",
         "grid": "0.01",
+        "extension": "nc",
         "packages": [
             {
                 "name": "SP1",
@@ -109,6 +113,7 @@ PACKAGES = [
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/WW3-WARP/grids/0.01/packages/SP1",
         "product": "productWWARP",
         "grid": "0.01",
+        "extension": "nc",
         "packages": [
             {
                 "name": "SP1",
@@ -126,6 +131,7 @@ PACKAGES = [
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/WW3-MARO/grids/0.01/packages/SP1",
         "product": "productWMARO",
         "grid": "0.01",
+        "extension": "nc",
         "packages": [
             {
                 "name": "SP1",
@@ -143,6 +149,7 @@ PACKAGES = [
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/HYCOM2D-MARP/grids/0.04/packages/SP1",
         "product": "productHMARP",
         "grid": "0.04",
+        "extension": "grib2",
         "packages": [
             {
                 "name": "SP1",
@@ -160,6 +167,7 @@ PACKAGES = [
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/HYCOM2D-WARP/grids/0.04/packages/SP1",
         "product": "productHWARP",
         "grid": "0.04",
+        "extension": "grib2",
         "packages": [
             {
                 "name": "SP1",
@@ -177,6 +185,7 @@ PACKAGES = [
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/HYCOM2D-WARO/grids/0.04/packages/SP1",
         "product": "productHWARO",
         "grid": "0.04",
+        "extension": "grib2",
         "packages": [
             {
                 "name": "SP1",
@@ -194,6 +203,7 @@ PACKAGES = [
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/HYCOM2D-MARO/grids/0.04/packages/SP1",
         "product": "productHMARO",
         "grid": "0.04",
+        "extension": "grib2",
         "packages": [
             {
                 "name": "SP1",
@@ -211,6 +221,7 @@ PACKAGES = [
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetAROME-OM/models/AROME-OM-ANTIL/grids/0.025/packages/IP1",
         "product": "productOMAN",
         "grid": "0.025",
+        "extension": "grib2",
         "packages": [
             {
                 "name": "IP1",
@@ -268,6 +279,7 @@ PACKAGES = [
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetAROME-OM/models/AROME-OM-GUYANE/grids/0.025/packages/IP1",
         "product": "productOMGU",
         "grid": "0.025",
+        "extension": "grib2",
         "packages": [
            {
                 "name": "IP1",
@@ -325,6 +337,7 @@ PACKAGES = [
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetAROME-OM/models/AROME-OM-INDIEN/grids/0.025/packages/IP1",
         "product": "productOMOI",
         "grid": "0.025",
+        "extension": "grib2",
         "packages": [
            {
                 "name": "IP1",
@@ -382,6 +395,7 @@ PACKAGES = [
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetAROME-OM/models/AROME-OM-POLYN/grids/0.025/packages/IP1",
         "product": "productOMPF",
         "grid": "0.025",
+        "extension": "grib2",
         "packages": [
            {
                 "name": "IP1",
@@ -439,6 +453,7 @@ PACKAGES = [
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetAROME-OM/models/AROME-OM-NCALED/grids/0.025/packages/IP1",
         "product": "productOMNC",
         "grid": "0.025",
+        "extension": "grib2",
         "packages": [
            {
                 "name": "IP1",
@@ -496,6 +511,7 @@ PACKAGES = [
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetAROME/models/AROME/grids/0.01/packages/SP1",
         "product": "productARO",
         "grid": "0.01",
+        "extension": "grib2",
         "packages": [
             {
                 "name": "SP1",
@@ -525,6 +541,7 @@ PACKAGES = [
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetAROME/models/AROME/grids/0.025/packages/SP1",
         "product": "productARO",
         "grid": "0.025",
+        "extension": "grib2",
         "packages": [
             {
                 "name": "IP1",
@@ -582,6 +599,7 @@ PACKAGES = [
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetARPEGE/models/ARPEGE/grids/0.1/packages/IP1",
         "product": "productARP",
         "grid": "0.1",
+        "extension": "grib2",
         "packages": [
             {
                 "name": "IP1",
@@ -627,6 +645,7 @@ PACKAGES = [
         "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetARPEGE/models/ARPEGE/grids/0.25/packages/IP1",
         "product": "productARP",
         "grid": "0.25",
+        "extension": "grib2",
         "packages": [
             {
                 "name": "IP1",
