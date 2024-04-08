@@ -280,6 +280,9 @@ def get_latest_theorical_batches(ctx):
     else:
         for i in range(MAX_LAST_BATCHES*2):
             batches.append((get_last_batch_hour() - timedelta(hours=3*i)).strftime("%Y-%m-%dT%H:%M:%SZ"))
+        batch3hlater = datetime.strptime(batches[0], "%Y-%m-%dT%H:%M:%SZ") + timedelta(hours=3)
+        if batch3hlater < datetime.now():
+            batches.append(batch3hlater.strftime("%Y-%m-%dT%H:%M:%SZ"))
 
     logging.info(batches)
     tested_batches = {}
