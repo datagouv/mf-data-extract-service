@@ -274,8 +274,12 @@ def send_processing_file(value):
 
 def get_latest_theorical_batches(ctx):
     batches = []
-    for i in range(MAX_LAST_BATCHES):
-        batches.append((get_last_batch_hour() - timedelta(hours=6*i)).strftime("%Y-%m-%dT%H:%M:%SZ"))
+    if ctx != "arome":
+        for i in range(MAX_LAST_BATCHES):
+            batches.append((get_last_batch_hour() - timedelta(hours=6*i)).strftime("%Y-%m-%dT%H:%M:%SZ"))
+    else:
+        for i in range(MAX_LAST_BATCHES*2):
+            batches.append((get_last_batch_hour() - timedelta(hours=3*i)).strftime("%Y-%m-%dT%H:%M:%SZ"))
 
     logging.info(batches)
     tested_batches = {}
