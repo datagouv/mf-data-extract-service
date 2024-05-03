@@ -7,7 +7,6 @@ import random
 import requests
 from requests.exceptions import RequestException, Timeout
 import shutil
-import sys
 import time
 from datetime import datetime, timedelta
 from typing import List, Optional, TypedDict
@@ -86,7 +85,11 @@ def send_files(
                     MINIO_BUCKET,
                     dest_path,
                     os.path.join(file["source_path"], file["source_name"]),
-                    content_type=file['content_type'] if 'content_type' in file else None
+                    content_type=(
+                        file['content_type']
+                        if 'content_type' in file
+                        else None
+                    )
                 )
             else:
                 raise Exception(
@@ -113,7 +116,11 @@ def get_files_from_prefix(
     found = client.bucket_exists(MINIO_BUCKET)
     if found:
         list_objects = []
-        objects = client.list_objects(MINIO_BUCKET, prefix=f"{prefix}", recursive=True)
+        objects = client.list_objects(
+            MINIO_BUCKET,
+            prefix=f"{prefix}",
+            recursive=True
+        )
         for obj in objects:
             list_objects.append(obj.object_name)
         return list_objects
@@ -138,7 +145,11 @@ def delete_files_prefix(
 
     try:
         # List objects in the specified folder
-        objects = client.list_objects(MINIO_BUCKET, prefix=prefix, recursive=True)
+        objects = client.list_objects(
+            MINIO_BUCKET,
+            prefix=prefix,
+            recursive=True
+        )
 
         # Create a list of object names to delete
         objects_to_delete = [obj.object_name for obj in objects]
@@ -147,7 +158,9 @@ def delete_files_prefix(
         for obj_name in objects_to_delete:
             client.remove_object(MINIO_BUCKET, obj_name)
 
-        logging.info(f"All objects with prefix '{prefix}' deleted successfully.")
+        logging.info(
+            f"All objects with prefix '{prefix}' deleted successfully."
+        )
 
     except S3Error as e:
         logging.info(f"Error: {e}")
@@ -163,7 +176,12 @@ def get_last_batch_hour():
         batch_hour = 12
     elif now.hour >= 18:
         batch_hour = 18
-    batch_time = (now.replace(second=0, microsecond=0, minute=0, hour=batch_hour))
+    batch_time = now.replace(
+        second=0,
+        microsecond=0,
+        minute=0,
+        hour=batch_hour
+    )
     return batch_time
 
 
@@ -174,7 +192,12 @@ def download_url(url, meta_urls, retry, current_folder):
         try:
             filename = meta_urls[url + ":filename"]
             headers = meta_urls[url + ":headers"]
-            with requests.get(url, stream=True, headers=headers, timeout=60) as r:
+            with requests.get(
+                url,
+                stream=True,
+                headers=headers,
+                timeout=60
+            ) as r:
                 r.raise_for_status()
                 with open(current_folder + "/" + filename, 'wb') as f:
                     for chunk in r.iter_content(chunk_size=32768):
@@ -184,7 +207,10 @@ def download_url(url, meta_urls, retry, current_folder):
         except Exception:
             download_url(url, meta_urls, current_folder, retry-1)
     else:
-        logging.info(f"EXCEPTION: {meta_urls[url+':filename']} cannot be downloaded after 5 tries")
+        logging.info(
+            f"EXCEPTION: {meta_urls[url+':filename']} "
+            "cannot be downloaded after 5 tries"
+        )
 
 
 def send_to_minio(url, meta_urls, current_folder):
@@ -260,7 +286,14 @@ def send_processing_file(value):
 # def check_if_ongoing_process():
 #     processing = False
 #     try:
-#         get_minio_file(MINIO_URL, MINIO_BUCKET, MINIO_USER, MINIO_PASSWORD, "processing.json", "/tmp/processing.json")
+#         get_minio_file(
+#             MINIO_URL,
+#             MINIO_BUCKET,
+#             MINIO_USER,
+#             MINIO_PASSWORD,
+#             "processing.json",
+#             "/tmp/processing.json"
+#         )
 #         with open("/tmp/processing.json", "r") as fp:
 #             data = json.load(fp)
 #         if data["processing"]: processing = data["processing"]
@@ -278,11 +311,17 @@ def get_latest_theorical_batches(ctx):
     batches = []
     if ctx != "arome":
         for i in range(MAX_LAST_BATCHES):
-            batches.append((get_last_batch_hour() - timedelta(hours=6*i)).strftime("%Y-%m-%dT%H:%M:%SZ"))
+            batches.append((
+                get_last_batch_hour() - timedelta(hours=6*i)
+            ).strftime("%Y-%m-%dT%H:%M:%SZ"))
     else:
         for i in range(MAX_LAST_BATCHES*2):
-            batches.append((get_last_batch_hour() - timedelta(hours=3*i)).strftime("%Y-%m-%dT%H:%M:%SZ"))
-        batch3hlater = datetime.strptime(batches[0], "%Y-%m-%dT%H:%M:%SZ") + timedelta(hours=3)
+            batches.append((
+                get_last_batch_hour() - timedelta(hours=3*i)
+            ).strftime("%Y-%m-%dT%H:%M:%SZ"))
+        batch3hlater = datetime.strptime(
+            batches[0], "%Y-%m-%dT%H:%M:%SZ"
+        ) + timedelta(hours=3)
         if batch3hlater < datetime.now():
             batches.append(batch3hlater.strftime("%Y-%m-%dT%H:%M:%SZ"))
 
@@ -295,7 +334,11 @@ def get_latest_theorical_batches(ctx):
             else:
                 test_batch = PACK["type_package"]
             if test_batch not in tested_batches:
-                tested_batches[test_batch] = check_if_data_available(batches, PACK["check_availability_url"], PACK["apikey"])
+                tested_batches[test_batch] = check_if_data_available(
+                    batches,
+                    PACK["check_availability_url"],
+                    PACK["apikey"]
+                )
     return batches, tested_batches
 
 
@@ -309,33 +352,56 @@ def construct_all_possible_files(batches, tested_batches):
             family_path = []
 
             if family_package["detail_package"]:
-                test_batch = family_package["type_package"] + "-" + family_package["detail_package"]
+                test_batch = (
+                    family_package["type_package"] + "-"
+                    + family_package["detail_package"]
+                )
             else:
                 test_batch = family_package["type_package"]
 
-            if tested_batches and test_batch in tested_batches and batch in tested_batches[test_batch]:
+            if (
+                tested_batches
+                and test_batch in tested_batches
+                and batch in tested_batches[test_batch]
+            ):
                 for package in family_package["packages"]:
                     for timeslot in package["time"]:
-                        headers = {"Content-Type": "application/json; charset=utf-8", "apikey": family_package["apikey"] }
+                        headers = {
+                            "Content-Type": "application/json; charset=utf-8",
+                            "apikey": family_package["apikey"]
+                        }
                         if family_package["detail_package"]:
-                            base_path = family_package["type_package"] + "/" + family_package["detail_package"]
-                            base_name = family_package["type_package"] + "-" + family_package["detail_package"]
+                            base_path = (
+                                family_package["type_package"] + "/"
+                                + family_package["detail_package"]
+                            )
+                            base_name = (
+                                family_package["type_package"] + "-"
+                                + family_package["detail_package"]
+                            )
                         else:
                             base_path = family_package["type_package"]
                             base_name = family_package["type_package"]
 
                         url = (
-                            family_package["base_url"] + "/" + family_package["grid"] + \
-                            "/packages/" + package["name"] + "/" + family_package["product"] + \
-                            "?&referencetime=" + batch + "&time=" + timeslot + "&format=" + family_package["extension"] 
+                            family_package["base_url"] + "/"
+                            + family_package["grid"]
+                            + "/packages/" + package["name"] + "/"
+                            + family_package["product"]
+                            + "?&referencetime=" + batch
+                            + "&time=" + timeslot
+                            + "&format=" + family_package["extension"]
                         )
                         filename = (
-                            base_name + "__" + family_package["grid"].replace("0.", "0") + \
-                            "__" + package["name"] + "__" + timeslot + "__" + batch + "." + family_package["extension"] 
+                            base_name + "__"
+                            + family_package["grid"].replace("0.", "0")
+                            + "__" + package["name"] + "__" + timeslot + "__"
+                            + batch + "." + family_package["extension"]
                         )
                         minio_path = (
-                            "pnt/" + batch + "/" + base_path + "/" + family_package["grid"].replace("0.", "0") + "/" + \
-                            package["name"] + "/" + filename
+                            "pnt/" + batch + "/" + base_path + "/"
+                            + family_package["grid"].replace("0.", "0") + "/"
+                            + package["name"] + "/" + filename
                         )
                         list_files.append(filename)
                         meta_urls[url+":headers"] = headers
@@ -349,7 +415,9 @@ def construct_all_possible_files(batches, tested_batches):
 
             if family_package["type_package"] not in family_paths:
                 family_paths[family_package["type_package"]] = []
-            family_paths[family_package["type_package"]] = family_paths[family_package["type_package"]] +  family_path
+            family_paths[family_package["type_package"]] = family_paths[
+                family_package["type_package"]
+            ] + family_path
 
     logging.info(str(len(list_files)) + " possible files")
 
@@ -363,14 +431,16 @@ def construct_all_possible_files(batches, tested_batches):
 
     to_get = list(set(minio_paths) - set(get_list_files))
 
-    logging.info(str(len(to_get)) + " possible(s) files after removing already processed files")
+    logging.info(
+        str(len(to_get))
+        + " possible file(s) after removing already processed files"
+    )
 
     if len(to_get) == 0:
         logging.info("no new data, exit")
         # send_processing_file(False)
         # sys.exit()
         return None
-
 
     family_urls = {}
     for fb in family_paths:
@@ -382,17 +452,24 @@ def construct_all_possible_files(batches, tested_batches):
     for fu in family_urls:
         random.shuffle(family_urls[fu])
 
-
     family_batches = {}
     for fu in family_urls:
-        family_batches[fu] = [family_urls[fu][i:i+BATCH_URL_SIZE_PACKAGE[fu]] for i in range(0, len(family_urls[fu]), BATCH_URL_SIZE_PACKAGE[fu])]
-
+        family_batches[fu] = [
+            family_urls[fu][i:i+BATCH_URL_SIZE_PACKAGE[fu]]
+            for i in range(0, len(family_urls[fu]), BATCH_URL_SIZE_PACKAGE[fu])
+        ]
 
     return list_files, meta_urls, family_batches, get_list_files
 
 
-
-def process_urls(family_batches, meta_urls, current_folder, max_workers, delay_between_batches, start):
+def process_urls(
+    family_batches,
+    meta_urls,
+    current_folder,
+    max_workers,
+    delay_between_batches,
+    start
+):
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
 
         max_iter = 0
@@ -411,15 +488,24 @@ def process_urls(family_batches, meta_urls, current_folder, max_workers, delay_b
                     print(fb, len(family_batches[fb][i]))
             url_batches.append(batch)
 
-        # url_batches = [urls[i:i+BATCH_URL_SIZE] for i in range(0, len(urls), BATCH_URL_SIZE)]
+        # url_batches = [
+        #     urls[i:i+BATCH_URL_SIZE]
+        #     for i in range(0, len(urls), BATCH_URL_SIZE)
+        # ]
         batch_nb = 0
         for batch in url_batches:
             batch_nb += 1
             end = time.time()
-            logging.info(f"Processing batch nb {batch_nb} - time {str(round(end - start, 2))}s")
+            logging.info(
+                f"Processing batch nb {batch_nb} -"
+                f" time {str(round(end - start, 2))}s"
+            )
             logging.info(str(len(batch)) + " urls to process in this batch")
             # Lancez les requêtes pour chaque URL dans le paquet simultanément
-            futures = [executor.submit(process_url, url, meta_urls, current_folder) for url in batch]
+            futures = [
+                executor.submit(process_url, url, meta_urls, current_folder)
+                for url in batch
+            ]
 
             # Pause d'une minute entre les paquets
             if batch_nb != max_iter:
@@ -433,7 +519,14 @@ def processing_each_possible_files(meta_urls, current_folder, family_batches):
     max_workers = 600
     delay_between_batches = 60  # Délai en secondes entre les paquets
 
-    process_urls(family_batches, meta_urls, current_folder, max_workers, delay_between_batches, start)
+    process_urls(
+        family_batches,
+        meta_urls,
+        current_folder,
+        max_workers,
+        delay_between_batches,
+        start
+    )
     end = time.time()
     logging.info(f"Files processed in {str(round(end - start, 2))}s")
 
@@ -442,15 +535,30 @@ def reorder_resources(ctx):
     for package in PACKAGES:
         if package["type_package"] in ctx.split(","):
             res_list = []
-            r = requests.get(f"{DATAGOUV_URL}/api/1/datasets/" + package["dataset_id_" + ENV_NAME])
+            r = requests.get(
+                f"{DATAGOUV_URL}/api/1/datasets/"
+                + package["dataset_id_" + ENV_NAME]
+            )
             data = r.json()
             for res in data["resources"]:
-                res_list.append({"title": res["title"], "id": res["id"], "did": package["dataset_id_" + ENV_NAME]})
+                res_list.append({
+                    "title": res["title"],
+                    "id": res["id"],
+                    "did": package["dataset_id_" + ENV_NAME]
+                })
             sorted_data = sorted(res_list, key=lambda x: x['title'])
             body = [{"id": x["id"]} for x in sorted_data]
-            r = requests.put(f"{DATAGOUV_URL}/api/1/datasets/{package['dataset_id_' + ENV_NAME]}/resources/", json=body, headers={"X-API-KEY": APIKEY_DATAGOUV})
+            r = requests.put(
+                f"{DATAGOUV_URL}/api/1/datasets/"
+                f"{package['dataset_id_' + ENV_NAME]}/resources/",
+                json=body,
+                headers={"X-API-KEY": APIKEY_DATAGOUV}
+            )
             if r.status_code == 200:
-                logging.info(f"Reorder successful for dataset {package['dataset_id_' + ENV_NAME]}")
+                logging.info(
+                    "Reorder successful for dataset "
+                    + package['dataset_id_' + ENV_NAME]
+                )
             else:
                 logging.info(f"Error on reordering, status code {r.status_code}")
 
@@ -468,10 +576,16 @@ def clean_old_runs_in_minio(batches):
     old_dates = []
     keep_dates = []
     for file in get_list_files_updated:
-        if ((file.split(".")[0].split("__")[-1] < batches[-1]) and (file.split(".")[0].split("__")[-1] not in old_dates)):
+        if (
+            file.split(".")[0].split("__")[-1] < batches[-1]
+            and file.split(".")[0].split("__")[-1] not in old_dates
+        ):
             old_dates.append(file.split(".")[0].split("__")[-1])
 
-        if ((file.split(".")[0].split("__")[-1] >= batches[-1]) and (file.split(".")[0].split("__")[-1] not in keep_dates)):
+        if (
+            file.split(".")[0].split("__")[-1] >= batches[-1]
+            and file.split(".")[0].split("__")[-1] not in keep_dates
+        ):
             keep_dates.append(file.split(".")[0].split("__")[-1])
 
     if len(keep_dates) > 3:
@@ -496,7 +610,9 @@ def publish_on_datagouv(current_folder, ctx):
     )
     properties_minio = {}
     for minio_path in get_list_files_updated:
-        name = "__".join(minio_path.split("/")[-1].split(".")[0].split("__")[:-1])
+        name = "__".join(
+            minio_path.split("/")[-1].split(".")[0].split("__")[:-1]
+        )
         date_file = minio_path.split("/")[-1].split(".")[0].split("__")[-1]
         if name not in properties_minio:
             properties_minio[name] = date_file
@@ -507,27 +623,53 @@ def publish_on_datagouv(current_folder, ctx):
                 properties_minio[name+":path"] = minio_path
     for package in PACKAGES:
         if package["type_package"] in ctx.split(","):
-            r = requests.get(f"{DATAGOUV_URL}/api/1/datasets/{package['dataset_id_' + ENV_NAME]}")
+            r = requests.get(
+                f"{DATAGOUV_URL}/api/1/datasets/"
+                + package['dataset_id_' + ENV_NAME]
+            )
             resources = r.json()["resources"]
             for resource in resources:
                 if resource["title"]:
-                    res_name = "__".join(resource["title"].split("/")[-1].split(".")[0].split("__")[:-1])
-                    res_date = resource["title"].split("/")[-1].split(".")[0].split("__")[-1]
-                    if(res_name and (res_name in properties_minio) and (properties_minio[res_name] != res_date)):
+                    res_name = "__".join(
+                        resource["title"].split("/")[-1]
+                        .split(".")[0].split("__")[:-1]
+                    )
+                    res_date = (
+                        resource["title"].split("/")[-1].split(".")[0]
+                        .split("__")[-1]
+                    )
+                    if (
+                        res_name
+                        and res_name in properties_minio
+                        and properties_minio[res_name] != res_date
+                    ):
                         reorder = True
-                        filename = res_name + "__" + properties_minio[res_name] + "." + package["extension"]
+                        filename = (
+                            res_name + "__"
+                            + properties_minio[res_name]
+                            + "." + package["extension"]
+                        )
                         body = {
                             "title": filename,
                             'url': (
-                                f"https://{MINIO_PUBLIC_URL}/{MINIO_BUCKET}/" + properties_minio[res_name+":path"]
+                                f"https://{MINIO_PUBLIC_URL}/{MINIO_BUCKET}/"
+                                + properties_minio[res_name+":path"]
                             ),
                             'type"': 'main',
                             'filetype': 'remote',
                             'format': package["extension"],
                         }
                         if os.path.exists(current_folder + '/' + filename):
-                            body['filesize'] = os.path.getsize(current_folder + '/' + filename)
-                        r_put = requests.put(f"{DATAGOUV_URL}/api/1/datasets/{package['dataset_id_' + ENV_NAME]}/resources/{resource['id']}/", json=body, headers={"X-API-KEY": APIKEY_DATAGOUV})
+                            body['filesize'] = os.path.getsize(
+                                current_folder + '/' + filename
+                            )
+                        r_put = requests.put(
+                            f"{DATAGOUV_URL}/api/1/datasets/"
+                            f"{package['dataset_id_' + ENV_NAME]}"
+                            f"/resources/{resource['id']}/",
+                            json=body,
+                            headers={"X-API-KEY": APIKEY_DATAGOUV}
+                        )
                         if r_put.status_code == 200:
                             logging.info(f"{res_name} refered in data.gouv.fr")
     return reorder
