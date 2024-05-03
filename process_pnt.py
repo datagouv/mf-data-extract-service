@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO)
 
 if __name__ == "__main__":
     while True:
-        
+
         logging.info("-------------------------------------")
         logging.info(f"------  NEW PROCESS {datetime.now().strftime('%Y-%m-%dT%H:%M')}  ------")
         logging.info("-------------------------------------")
@@ -58,8 +58,8 @@ if __name__ == "__main__":
         try:
             logging.info("---- Publish all new files in data.gouv.fr ----")
             reorder = publish_on_datagouv(current_folder, ctx)
-            
-            if reorder: 
+
+            if reorder:
                 logging.info("---- Reorder resources of data.gouv for each dataset ----")
                 reorder_resources(ctx)
         except:

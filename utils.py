@@ -38,6 +38,7 @@ class File(TypedDict):
     dest_name: str
     content_type: Optional[str]
 
+
 def get_minio_file(
     MINIO_URL: str,
     MINIO_BUCKET: str,
@@ -119,7 +120,7 @@ def get_files_from_prefix(
     else:
         raise Exception(f"Bucket {MINIO_BUCKET} does not exists")
 
-        
+
 def delete_files_prefix(
     MINIO_URL: str,
     MINIO_BUCKET: str,
@@ -134,7 +135,7 @@ def delete_files_prefix(
         secret_key=MINIO_PASSWORD,
         secure=MINIO_SECURE,
     )
-    
+
     try:
         # List objects in the specified folder
         objects = client.list_objects(MINIO_BUCKET, prefix=prefix, recursive=True)
@@ -168,18 +169,19 @@ def get_last_batch_hour():
 
 def download_url(url, meta_urls, retry, current_folder):
     if retry != 0:
-        if retry != 5: print("Retry " + str(5-retry) + "for " + url)
+        if retry != 5:
+            print("Retry " + str(5-retry) + "for " + url)
         try:
             filename = meta_urls[url + ":filename"]
             headers = meta_urls[url + ":headers"]
             with requests.get(url, stream=True, headers=headers, timeout=60) as r:
                 r.raise_for_status()
                 with open(current_folder + "/" + filename, 'wb') as f:
-                    for chunk in r.iter_content(chunk_size=32768): 
+                    for chunk in r.iter_content(chunk_size=32768):
                         f.write(chunk)
         except Timeout:
             logging.info("The request timed out. for " + url)
-        except Exception as e:
+        except Exception:
             download_url(url, meta_urls, current_folder, retry-1)
     else:
         logging.info(f"EXCEPTION: {meta_urls[url+':filename']} cannot be downloaded after 5 tries")
@@ -203,13 +205,13 @@ def send_to_minio(url, meta_urls, current_folder):
         ],
     )
     logging.info(f"{meta_urls[url+':filename']} sent to minio")
-    
-        
+
+
 def process_url(url, meta_urls, current_folder):
     download_url(url, meta_urls, 5, current_folder)
     send_to_minio(url, meta_urls, current_folder)
 
-    
+
 def remove_and_create_folder(folder_path, toCreate):
     if os.path.exists(folder_path):
         shutil.rmtree(folder_path)
@@ -228,14 +230,14 @@ def check_if_data_available(batches, url, apikey):
                         if batch in link["href"]:
                             new_batches.append(batch)
             return new_batches
-        except:
-            logging.info("--- ERROR WITH MF API ----")  
+        except Exception:
+            logging.info("--- ERROR WITH MF API ----")
     except RequestException as e:
         logging.info(f"Erreur de connexion : {e}")
 
 
 def send_processing_file(value):
-    data = { "processing": value }
+    data = {"processing": value}
     with open("./processing.json", "w") as fp:
         json.dump(data, fp)
     send_files(
@@ -310,7 +312,7 @@ def construct_all_possible_files(batches, tested_batches):
                 test_batch = family_package["type_package"] + "-" + family_package["detail_package"]
             else:
                 test_batch = family_package["type_package"]
-                
+
             if tested_batches and test_batch in tested_batches and batch in tested_batches[test_batch]:
                 for package in family_package["packages"]:
                     for timeslot in package["time"]:
@@ -344,7 +346,7 @@ def construct_all_possible_files(batches, tested_batches):
                         meta_urls[minio_path+":base_name"] = base_name
                         minio_paths.append(minio_path)
                         family_path.append(minio_path)
-            
+
             if family_package["type_package"] not in family_paths:
                 family_paths[family_package["type_package"]] = []
             family_paths[family_package["type_package"]] = family_paths[family_package["type_package"]] +  family_path
@@ -358,9 +360,9 @@ def construct_all_possible_files(batches, tested_batches):
         MINIO_PASSWORD=MINIO_PASSWORD,
         prefix="pnt/",
     )
-    
+
     to_get = list(set(minio_paths) - set(get_list_files))
-    
+
     logging.info(str(len(to_get)) + " possible(s) files after removing already processed files")
 
     if len(to_get) == 0:
@@ -368,7 +370,7 @@ def construct_all_possible_files(batches, tested_batches):
         # send_processing_file(False)
         # sys.exit()
         return None
-    
+
 
     family_urls = {}
     for fb in family_paths:
@@ -376,7 +378,7 @@ def construct_all_possible_files(batches, tested_batches):
         for mpath in family_paths[fb]:
             if mpath in to_get:
                 family_urls[fb].append(meta_urls[mpath+":url"])
-    
+
     for fu in family_urls:
         random.shuffle(family_urls[fu])
 
@@ -406,9 +408,8 @@ def process_urls(family_batches, meta_urls, current_folder, max_workers, delay_b
             for fb in family_batches:
                 if len(family_batches[fb]) > i:
                     batch = batch + family_batches[fb][i]
-                    print(fb, len(family_batches[fb][i]))            
+                    print(fb, len(family_batches[fb][i]))
             url_batches.append(batch)
-        
 
         # url_batches = [urls[i:i+BATCH_URL_SIZE] for i in range(0, len(urls), BATCH_URL_SIZE)]
         batch_nb = 0
@@ -429,7 +430,7 @@ def processing_each_possible_files(meta_urls, current_folder, family_batches):
 
     start = time.time()
 
-    max_workers = 600 
+    max_workers = 600
     delay_between_batches = 60  # Délai en secondes entre les paquets
 
     process_urls(family_batches, meta_urls, current_folder, max_workers, delay_between_batches, start)
@@ -469,10 +470,10 @@ def clean_old_runs_in_minio(batches):
     for file in get_list_files_updated:
         if ((file.split(".")[0].split("__")[-1] < batches[-1]) and (file.split(".")[0].split("__")[-1] not in old_dates)):
             old_dates.append(file.split(".")[0].split("__")[-1])
-        
+
         if ((file.split(".")[0].split("__")[-1] >= batches[-1]) and (file.split(".")[0].split("__")[-1] not in keep_dates)):
             keep_dates.append(file.split(".")[0].split("__")[-1])
-    
+
     if len(keep_dates) > 3:
         for od in old_dates:
             delete_files_prefix(
