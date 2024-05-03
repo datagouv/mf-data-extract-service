@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO)
 
 if __name__ == "__main__":
     while True:
-        
+
         logging.info("-------------------------------------")
         logging.info(f"------  NEW PROCESS {datetime.now().strftime('%Y-%m-%dT%H:%M')}  ------")
         logging.info("-------------------------------------")
@@ -38,7 +38,7 @@ if __name__ == "__main__":
         logging.info("---- Get latest theorical batches -----")
         batches, tested_batches = get_latest_theorical_batches(ctx)
 
-        logging.info("---- Construct all possibles files ----")
+        logging.info("---- Construct all possible files ----")
         try:
             result = construct_all_possible_files(batches, tested_batches)
         except TypeError as e:
@@ -49,7 +49,7 @@ if __name__ == "__main__":
             list_files, meta_urls, family_batches, get_list_files = result
 
         try:
-            logging.info("---- Processing each possible files ----")
+            logging.info("---- Processing each possible file ----")
             processing_each_possible_files(meta_urls, current_folder, family_batches)
         except:
             logging.info("EXCEPTION")
@@ -58,12 +58,12 @@ if __name__ == "__main__":
         try:
             logging.info("---- Publish all new files in data.gouv.fr ----")
             reorder = publish_on_datagouv(current_folder, ctx)
-            
-            if reorder: 
+
+            if reorder:
                 logging.info("---- Reorder resources of data.gouv for each dataset ----")
                 reorder_resources(ctx)
         except:
-            logging.info("Problem occurs during publishing in data.gouv")
+            logging.info("Problem occured during publishing in data.gouv")
             pass
 
         logging.info("---- Remove files in minio and data.gouv.fr if more than MAX BATCH SIZE ----")
