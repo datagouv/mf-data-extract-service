@@ -43,7 +43,7 @@ if __name__ == "__main__":
             result = construct_all_possible_files(batches, tested_batches)
         except TypeError as e:
             result = None
-            logging.info("Error - wait next batch")
+            logging.info(f"Error - wait next batch: {e}")
 
         if result is not None:
             list_files, meta_urls, family_batches, get_list_files = result
@@ -51,8 +51,8 @@ if __name__ == "__main__":
         try:
             logging.info("---- Processing each possible file ----")
             processing_each_possible_files(meta_urls, current_folder, family_batches)
-        except:
-            logging.info("EXCEPTION")
+        except Exception as e:
+            logging.info(f"EXCEPTION: {e}")
             pass
 
         try:
@@ -62,8 +62,8 @@ if __name__ == "__main__":
             if reorder:
                 logging.info("---- Reorder resources of data.gouv for each dataset ----")
                 reorder_resources(ctx)
-        except:
-            logging.info("Problem occured during publishing in data.gouv")
+        except Exception as e:
+            logging.info(f"Problem occured during publishing in data.gouv: {e}")
             pass
 
         logging.info("---- Remove files in minio and data.gouv.fr if more than MAX BATCH SIZE ----")
