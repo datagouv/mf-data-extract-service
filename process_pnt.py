@@ -44,6 +44,7 @@ if __name__ == "__main__":
         except TypeError as e:
             result = None
             logging.info(f"Error - wait next batch: {e}")
+            continue
 
         if result is not None:
             list_files, meta_urls, family_batches, get_list_files = result
@@ -53,7 +54,7 @@ if __name__ == "__main__":
             processing_each_possible_files(meta_urls, current_folder, family_batches)
         except Exception as e:
             logging.info(f"EXCEPTION: {e}")
-            pass
+            continue
 
         try:
             logging.info("---- Publish all new files in data.gouv.fr ----")
@@ -64,7 +65,7 @@ if __name__ == "__main__":
                 reorder_resources(ctx)
         except Exception as e:
             logging.info(f"Problem occured during publishing in data.gouv: {e}")
-            pass
+            continue
 
         logging.info("---- Remove files in minio and data.gouv.fr if more than MAX BATCH SIZE ----")
         clean_old_runs_in_minio(batches)
