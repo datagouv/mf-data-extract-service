@@ -599,6 +599,13 @@ def clean_old_runs_in_minio(batches):
             )
 
 
+def get_package_from_name(name):
+    prefix = name.split('__')[0]
+    if '-' in prefix:
+        return '-'.join(prefix.split('-')[:-1])
+    return prefix
+
+
 def publish_on_datagouv(current_folder, ctx):
     reorder = False
     get_list_files_updated = get_files_from_prefix(
@@ -608,68 +615,107 @@ def publish_on_datagouv(current_folder, ctx):
         MINIO_PASSWORD=MINIO_PASSWORD,
         prefix="pnt/",
     )
-    properties_minio = {}
+    minio_files = {}
+    # re-getting minio files as they have been updated
     for minio_path in get_list_files_updated:
         name = "__".join(
             minio_path.split("/")[-1].split(".")[0].split("__")[:-1]
         )
         date_file = minio_path.split("/")[-1].split(".")[0].split("__")[-1]
-        if name not in properties_minio:
-            properties_minio[name] = date_file
-            properties_minio[name+":path"] = minio_path
-        else:
-            if properties_minio[name] < date_file:
-                properties_minio[name] = date_file
-                properties_minio[name+":path"] = minio_path
+        if name not in minio_files:
+            minio_files[name] = {'date': date_file, 'path': minio_path}
+        elif minio_files[name]['date'] < date_file:
+            minio_files[name]['date'] = date_file
+
+    # getting files currently on data.gouv
+    datagouv_files = {}
     for package in PACKAGES:
         if package["type_package"] in ctx.split(","):
             r = requests.get(
                 f"{DATAGOUV_URL}/api/1/datasets/"
-                + package['dataset_id_' + ENV_NAME]
+                + package['dataset_id_' + ENV_NAME],
+                headers={'X-fields': 'resources{id,url,type}'}
             )
             resources = r.json()["resources"]
             for resource in resources:
-                if resource["title"]:
-                    res_name = "__".join(
-                        resource["title"].split("/")[-1]
-                        .split(".")[0].split("__")[:-1]
+                if resource['type'] != 'main':
+                    continue
+                name = "__".join(
+                    resource["url"].split("/")[-1].split(".")[0].split("__")[:-1]
+                )
+                date_file = resource["url"].split("/")[-1].split(".")[0].split("__")[-1]
+                datagouv_files[name] = {
+                    'date': date_file,
+                    'path': resource["url"],
+                    'extension': package["extension"],
+                }
+
+    for name in minio_files:
+        if get_package_from_name(name) not in ctx.split(","):
+            continue
+        # if the file is already on data.gouv and it's more recent on minio => upload
+        if name in datagouv_files:
+            if minio_files[name]['date'] > datagouv_files[name]['date']:
+                reorder = True
+                filename = (
+                    name + "__"
+                    + minio_files[name]['date']
+                    + "." + datagouv_files[name]['extension']
+                )
+                body = {
+                    "title": filename,
+                    'url': (
+                        f"https://{MINIO_PUBLIC_URL}/{MINIO_BUCKET}/"
+                        + minio_files[name]["path"]
+                    ),
+                    'type': 'main',
+                    'filetype': 'remote',
+                    'format': datagouv_files[name]['extension'],
+                }
+                if os.path.exists(current_folder + '/' + filename):
+                    body['filesize'] = os.path.getsize(
+                        current_folder + '/' + filename
                     )
-                    res_date = (
-                        resource["title"].split("/")[-1].split(".")[0]
-                        .split("__")[-1]
-                    )
-                    if (
-                        res_name
-                        and res_name in properties_minio
-                        and properties_minio[res_name] != res_date
-                    ):
-                        reorder = True
-                        filename = (
-                            res_name + "__"
-                            + properties_minio[res_name]
-                            + "." + package["extension"]
-                        )
-                        body = {
-                            "title": filename,
-                            'url': (
-                                f"https://{MINIO_PUBLIC_URL}/{MINIO_BUCKET}/"
-                                + properties_minio[res_name+":path"]
-                            ),
-                            'type"': 'main',
-                            'filetype': 'remote',
-                            'format': package["extension"],
-                        }
-                        if os.path.exists(current_folder + '/' + filename):
-                            body['filesize'] = os.path.getsize(
-                                current_folder + '/' + filename
-                            )
-                        r_put = requests.put(
-                            f"{DATAGOUV_URL}/api/1/datasets/"
-                            f"{package['dataset_id_' + ENV_NAME]}"
-                            f"/resources/{resource['id']}/",
-                            json=body,
-                            headers={"X-API-KEY": APIKEY_DATAGOUV}
-                        )
-                        if r_put.status_code == 200:
-                            logging.info(f"{res_name} refered in data.gouv.fr")
+                r_put = requests.put(
+                    f"{DATAGOUV_URL}/api/1/datasets/"
+                    f"{package['dataset_id_' + ENV_NAME]}"
+                    f"/resources/{resource['id']}/",
+                    json=body,
+                    headers={"X-API-KEY": APIKEY_DATAGOUV}
+                )
+                if r_put.status_code == 200:
+                    logging.info(f"{name} updated in data.gouv.fr")
+        else:
+            # if the file is not on data.gouv => upload (should not happend often)
+            reorder = True
+            extension = minio_files[name]["path"].split('.')[-1]
+            filename = (
+                name + "__"
+                + minio_files[name]['date']
+                + "." + extension
+            )
+            body = {
+                "title": filename,
+                'url': (
+                    f"https://{MINIO_PUBLIC_URL}/{MINIO_BUCKET}/"
+                    + minio_files[name]["path"]
+                ),
+                'type': 'main',
+                'filetype': 'remote',
+                'format': extension,
+            }
+            if os.path.exists(current_folder + '/' + filename):
+                body['filesize'] = os.path.getsize(
+                    current_folder + '/' + filename
+                )
+            r_put = requests.post(
+                f"{DATAGOUV_URL}/api/1/datasets/"
+                f"{package['dataset_id_' + ENV_NAME]}"
+                f"/resources/",
+                json=body,
+                headers={"X-API-KEY": APIKEY_DATAGOUV}
+            )
+            if r_put.status_code == 200:
+                logging.info(f"{name} created in data.gouv.fr")
+
     return reorder
