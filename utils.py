@@ -601,9 +601,21 @@ def clean_old_runs_in_minio(batches):
 
 def get_package_from_name(name):
     prefix = name.split('__')[0]
+    grille = name.split('__')[1]
+    grille = grille[0] + '.' + ''.join(grille[1:])
     if '-' in prefix:
-        return '-'.join(prefix.split('-')[:-1])
-    return prefix
+        return '-'.join(prefix.split('-')[:-1]), prefix.split('-')[-1], grille
+    return prefix, None, grille
+
+
+def get_params(name, detail, grille):
+    for p in PACKAGES:
+        if p['type_package'] == name and p['grid'] == grille:
+            if detail is None:
+                return p
+            elif p['detail_package'] == detail:
+                return p
+    raise Exception('Should not happen')
 
 
 def publish_on_datagouv(current_folder, ctx):
@@ -648,10 +660,12 @@ def publish_on_datagouv(current_folder, ctx):
                     'date': date_file,
                     'path': resource["url"],
                     'extension': package["extension"],
+                    'id': resource["id"],
+                    'dataset_id': package['dataset_id_' + ENV_NAME],
                 }
 
     for name in minio_files:
-        if get_package_from_name(name) not in ctx.split(","):
+        if get_package_from_name(name)[0] not in ctx.split(","):
             continue
         # if the file is already on data.gouv and it's more recent on minio => upload
         if name in datagouv_files:
@@ -678,8 +692,8 @@ def publish_on_datagouv(current_folder, ctx):
                     )
                 r_put = requests.put(
                     f"{DATAGOUV_URL}/api/1/datasets/"
-                    f"{package['dataset_id_' + ENV_NAME]}"
-                    f"/resources/{resource['id']}/",
+                    f"{datagouv_files[name]['dataset_id']}"
+                    f"/resources/{datagouv_files[name]['id']}/",
                     json=body,
                     headers={"X-API-KEY": APIKEY_DATAGOUV}
                 )
@@ -688,11 +702,11 @@ def publish_on_datagouv(current_folder, ctx):
         else:
             # if the file is not on data.gouv => upload (should not happend often)
             reorder = True
-            extension = minio_files[name]["path"].split('.')[-1]
+            package = get_params(*get_package_from_name(name))
             filename = (
                 name + "__"
                 + minio_files[name]['date']
-                + "." + extension
+                + "." + package['extension']
             )
             body = {
                 "title": filename,
@@ -702,7 +716,7 @@ def publish_on_datagouv(current_folder, ctx):
                 ),
                 'type': 'main',
                 'filetype': 'remote',
-                'format': extension,
+                'format': package['extension'],
             }
             if os.path.exists(current_folder + '/' + filename):
                 body['filesize'] = os.path.getsize(
@@ -711,7 +725,7 @@ def publish_on_datagouv(current_folder, ctx):
             r_put = requests.post(
                 f"{DATAGOUV_URL}/api/1/datasets/"
                 f"{package['dataset_id_' + ENV_NAME]}"
-                f"/resources/",
+                "/resources/",
                 json=body,
                 headers={"X-API-KEY": APIKEY_DATAGOUV}
             )
