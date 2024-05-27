@@ -14,14 +14,15 @@ from utils import (
 )
 
 logging.basicConfig(level=logging.INFO)
+cooldown = 60
 
 
 if __name__ == "__main__":
     while True:
 
-        logging.info("-------------------------------------")
-        logging.info(f"------  NEW PROCESS {datetime.now().strftime('%Y-%m-%dT%H:%M')}  ------")
-        logging.info("-------------------------------------")
+        logging.info("--------------------------------------")
+        logging.info(f"---  NEW PROCESS {datetime.now().strftime('%Y-%m-%dT%H:%M')}  ---")
+        logging.info("--------------------------------------")
 
         result = None
         list_files = None
@@ -43,7 +44,10 @@ if __name__ == "__main__":
             result = construct_all_possible_files(batches, tested_batches)
         except TypeError as e:
             result = None
-            logging.info("Error - wait next batch")
+            logging.warning(f"Error constructing files: {e}")
+            logging.info(f"Restarting a process in {cooldown}s")
+            time.sleep(cooldown)
+            continue
 
         if result is not None:
             list_files, meta_urls, family_batches, get_list_files = result
@@ -51,9 +55,11 @@ if __name__ == "__main__":
         try:
             logging.info("---- Processing each possible file ----")
             processing_each_possible_files(meta_urls, current_folder, family_batches)
-        except:
-            logging.info("EXCEPTION")
-            pass
+        except Exception as e:
+            logging.warning(f"Error processing all file combinations: {e}")
+            logging.info(f"Restarting a process in {cooldown}s")
+            time.sleep(cooldown)
+            continue
 
         try:
             logging.info("---- Publish all new files in data.gouv.fr ----")
@@ -62,9 +68,11 @@ if __name__ == "__main__":
             if reorder:
                 logging.info("---- Reorder resources of data.gouv for each dataset ----")
                 reorder_resources(ctx)
-        except:
-            logging.info("Problem occured during publishing in data.gouv")
-            pass
+        except Exception as e:
+            logging.warning(f"Problem occured during publishing in data.gouv: {e}")
+            logging.info(f"Restarting a process in {cooldown}s")
+            time.sleep(cooldown)
+            continue
 
         logging.info("---- Remove files in minio and data.gouv.fr if more than MAX BATCH SIZE ----")
         clean_old_runs_in_minio(batches)
@@ -75,4 +83,4 @@ if __name__ == "__main__":
         logging.info("------       END PROCESS       ------")
         logging.info("-")
 
-        time.sleep(60)
+        time.sleep(cooldown)
