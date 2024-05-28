@@ -604,7 +604,13 @@ def get_package_from_name(name):
     grille = name.split('__')[1]
     grille = grille[0] + '.' + ''.join(grille[1:])
     if '-' in prefix:
-        return '-'.join(prefix.split('-')[:-1]), prefix.split('-')[-1], grille
+        # arome-om
+        if prefix.count('-') == 2:
+            return '-'.join(prefix.split('-')[:-1]), prefix.split('-')[-1], grille
+        # vague-surcote
+        if prefix.count('-') == 3:
+            return '-'.join(prefix.split('-')[:-2]), '-'.join(prefix.split('-')[-2:]), grille
+        raise Exception('Should not happen')
     return prefix, None, grille
 
 
