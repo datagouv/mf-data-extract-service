@@ -51,6 +51,10 @@ if __name__ == "__main__":
 
         if result is not None:
             list_files, meta_urls, family_batches, get_list_files = result
+        else:
+            logging.info(f"Restarting a process in {cooldown}s")
+            time.sleep(cooldown)
+            continue
 
         try:
             logging.info("---- Processing each possible file ----")
