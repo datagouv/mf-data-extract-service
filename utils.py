@@ -698,7 +698,11 @@ def publish_on_datagouv(current_folder, ctx):
                     headers={"X-API-KEY": APIKEY_DATAGOUV}
                 )
                 if r_put.status_code == 200:
-                    logging.info(f"{name} updated in data.gouv.fr")
+                    logging.info(
+                        f"{name} updated in data.gouv.fr "
+                        f"({datagouv_files[name]['date']} => "
+                        f"{minio_files[name]['date']})"
+                    )
         else:
             # if the file is not on data.gouv => upload (should not happend often)
             reorder = True
