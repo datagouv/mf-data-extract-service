@@ -634,10 +634,8 @@ def publish_on_datagouv(current_folder, ctx):
             minio_path.split("/")[-1].split(".")[0].split("__")[:-1]
         )
         date_file = minio_path.split("/")[-1].split(".")[0].split("__")[-1]
-        if name not in minio_files:
+        if name not in minio_files or minio_files[name]['date'] < date_file:
             minio_files[name] = {'date': date_file, 'path': minio_path}
-        elif minio_files[name]['date'] < date_file:
-            minio_files[name]['date'] = date_file
 
     # getting files currently on data.gouv
     datagouv_files = {}
