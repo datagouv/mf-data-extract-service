@@ -29,6 +29,7 @@ if __name__ == "__main__":
         meta_urls = None
         family_batches = None
         get_list_files = None
+        skip = False
 
         ctx = sys.argv[1]
         current_folder = "./data" + "-" + ctx.replace(",", "-")
@@ -52,18 +53,17 @@ if __name__ == "__main__":
         if result is not None:
             list_files, meta_urls, family_batches, get_list_files = result
         else:
-            logging.info(f"Restarting a process in {cooldown}s")
-            time.sleep(cooldown)
-            continue
+            skip = True
 
-        try:
-            logging.info("---- Processing each possible file ----")
-            processing_each_possible_files(meta_urls, current_folder, family_batches)
-        except Exception as e:
-            logging.warning(f"Error processing all file combinations: {e}")
-            logging.info(f"Restarting a process in {cooldown}s")
-            time.sleep(cooldown)
-            continue
+        if not skip:
+            try:
+                logging.info("---- Processing each possible file ----")
+                processing_each_possible_files(meta_urls, current_folder, family_batches)
+            except Exception as e:
+                logging.warning(f"Error processing all file combinations: {e}")
+                logging.info(f"Restarting a process in {cooldown}s")
+                time.sleep(cooldown)
+                continue
 
         try:
             logging.info("---- Publish all new files in data.gouv.fr ----")
