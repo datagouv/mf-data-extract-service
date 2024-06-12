@@ -20,7 +20,7 @@ APIKEY_VAGUE_SURCOTE = os.environ.get("APIKEY_VAGUE_SURCOTE")
 DATAGOUV_URL = os.environ.get("DATAGOUV_URL")
 
 # Nb of batch we want to retrieve (every 6 hours)
-MAX_LAST_BATCHES = 6
+MAX_LAST_BATCHES = 60
 BATCH_URL_SIZE = 50
 
 BATCH_URL_SIZE_PACKAGE = {
