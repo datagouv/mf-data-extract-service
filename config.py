@@ -20,7 +20,7 @@ APIKEY_VAGUE_SURCOTE = os.environ.get("APIKEY_VAGUE_SURCOTE")
 DATAGOUV_URL = os.environ.get("DATAGOUV_URL")
 
 # Nb of batch we want to retrieve (every 6 hours)
-MAX_LAST_BATCHES = 6
+MAX_LAST_BATCHES = 60
 BATCH_URL_SIZE = 50
 
 BATCH_URL_SIZE_PACKAGE = {
@@ -965,47 +965,47 @@ PACKAGES = [
         "packages": [
             {
                 "name": "IP1",
-                "time": ["00H06H", "07H12H", "13H18H", "19H24H", "25H30H", "31H36H", "37H42H"]
+                "time": ["00H06H", "07H12H", "13H18H", "19H24H", "25H30H", "31H36H", "37H42H", "43H48H", "49H51H"]
             },
             {
                 "name": "IP2",
-                "time": ["00H06H", "07H12H", "13H18H", "19H24H", "25H30H", "31H36H", "37H42H"]
+                "time": ["00H06H", "07H12H", "13H18H", "19H24H", "25H30H", "31H36H", "37H42H" "43H48H", "49H51H"]
             },
             {
                 "name": "IP3",
-                "time": ["00H06H", "07H12H", "13H18H", "19H24H", "25H30H", "31H36H", "37H42H"]
+                "time": ["00H06H", "07H12H", "13H18H", "19H24H", "25H30H", "31H36H", "37H42H" "43H48H", "49H51H"]
             },
             {
                 "name": "IP4",
-                "time": ["00H06H", "07H12H", "13H18H", "19H24H", "25H30H", "31H36H", "37H42H"]
+                "time": ["00H06H", "07H12H", "13H18H", "19H24H", "25H30H", "31H36H", "37H42H" "43H48H", "49H51H"]
             },
             {
                 "name": "IP5",
-                "time": ["00H06H", "07H12H", "13H18H", "19H24H", "25H30H", "31H36H", "37H42H"]
+                "time": ["00H06H", "07H12H", "13H18H", "19H24H", "25H30H", "31H36H", "37H42H" "43H48H", "49H51H"]
             },
             {
                 "name": "SP1",
-                "time": ["00H06H", "07H12H", "13H18H", "19H24H", "25H30H", "31H36H", "37H42H"]
+                "time": ["00H06H", "07H12H", "13H18H", "19H24H", "25H30H", "31H36H", "37H42H" "43H48H", "49H51H"]
             },
             {
                 "name": "SP2",
-                "time": ["00H06H", "07H12H", "13H18H", "19H24H", "25H30H", "31H36H", "37H42H"]
+                "time": ["00H06H", "07H12H", "13H18H", "19H24H", "25H30H", "31H36H", "37H42H" "43H48H", "49H51H"]
             },
             {
                 "name": "SP3",
-                "time": ["00H06H", "07H12H", "13H18H", "19H24H", "25H30H", "31H36H", "37H42H"]
+                "time": ["00H06H", "07H12H", "13H18H", "19H24H", "25H30H", "31H36H", "37H42H" "43H48H", "49H51H"]
             },
             {
                 "name": "HP1",
-                "time": ["00H06H", "07H12H", "13H18H", "19H24H", "25H30H", "31H36H", "37H42H"]
+                "time": ["00H06H", "07H12H", "13H18H", "19H24H", "25H30H", "31H36H", "37H42H" "43H48H", "49H51H"]
             },
             {
                 "name": "HP2",
-                "time": ["00H06H", "07H12H", "13H18H", "19H24H", "25H30H", "31H36H", "37H42H"]
+                "time": ["00H06H", "07H12H", "13H18H", "19H24H", "25H30H", "31H36H", "37H42H" "43H48H", "49H51H"]
             },
             {
                 "name": "HP3",
-                "time": ["00H06H", "07H12H", "13H18H", "19H24H", "25H30H", "31H36H", "37H42H"]
+                "time": ["00H06H", "07H12H", "13H18H", "19H24H", "25H30H", "31H36H", "37H42H" "43H48H", "49H51H"]
             }
         ]
     },
