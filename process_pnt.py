@@ -11,6 +11,7 @@ from utils import (
     publish_on_datagouv,
     remove_and_create_folder,
     reorder_resources,
+    dump_and_send_tree,
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -77,6 +78,9 @@ if __name__ == "__main__":
             logging.info(f"Restarting a process in {cooldown}s")
             time.sleep(cooldown)
             continue
+
+        logging.info("---- Getting file tree on minio and update it on data.gouv ----")
+        dump_and_send_tree()
 
         logging.info("---- Remove files in minio and data.gouv.fr if more than MAX BATCH SIZE ----")
         clean_old_runs_in_minio(batches)
