@@ -10,6 +10,7 @@ import time
 from datetime import datetime, timedelta
 from typing import List, Optional, TypedDict
 import re
+import pygrib
 
 from minio import Minio, datatypes
 from minio.error import S3Error
@@ -233,9 +234,24 @@ def send_to_minio(url, meta_urls, current_folder):
     logging.info(f"{meta_urls[url+':filename']} sent to minio")
 
 
+def test_file_structure(filepath):
+    # open and check that grib file is properly structured
+    grib = pygrib.open(filepath)
+    for msg in grib:
+        try:
+            msg.values.shape
+        except:
+            return False
+    return True
+
+
 def process_url(url, meta_urls, current_folder):
     download_url(url, meta_urls, 5, current_folder)
-    send_to_minio(url, meta_urls, current_folder)
+    if test_file_structure(current_folder + "/" + meta_urls[url + ":filename"]):
+        send_to_minio(url, meta_urls, current_folder)
+    else:
+        print(meta_urls[url + ":filename"], "is badly structured, deleting...")
+        os.remove(current_folder + "/" + meta_urls[url + ":filename"])
 
 
 def remove_and_create_folder(folder_path, toCreate):
