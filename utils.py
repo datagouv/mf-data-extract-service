@@ -651,6 +651,7 @@ def publish_on_datagouv(current_folder, ctx):
     )
     minio_files = {}
     # re-getting minio files as they have been updated
+    logging.info("Getting minio files...")
     for minio_path in get_list_files_updated:
         name = "__".join(
             minio_path.split("/")[-1].split(".")[0].split("__")[:-1]
@@ -660,6 +661,7 @@ def publish_on_datagouv(current_folder, ctx):
             minio_files[name] = {'date': date_file, 'path': minio_path}
 
     # getting files currently on data.gouv
+    logging.info("Getting data.gouv files...")
     datagouv_files = {}
     for package in PACKAGES:
         if package["type_package"] in ctx.split(","):
@@ -684,11 +686,13 @@ def publish_on_datagouv(current_folder, ctx):
                     'dataset_id': package['dataset_id_' + ENV_NAME],
                 }
 
+    logging.info("Synchronizing...")
     for name in minio_files:
         if get_package_from_name(name)[0] not in ctx.split(","):
             continue
         # if the file is already on data.gouv and it's more recent on minio => upload
         if name in datagouv_files:
+            logging.info(f"{name}: updating on data.gouv.fr...")
             if minio_files[name]['date'] > datagouv_files[name]['date']:
                 reorder = True
                 filename = (
@@ -719,11 +723,12 @@ def publish_on_datagouv(current_folder, ctx):
                 )
                 if r_put.status_code == 200:
                     logging.info(
-                        f"{name} updated in data.gouv.fr "
+                        "=> Succesfully updated on data.gouv.fr "
                         f"({datagouv_files[name]['date']} => "
                         f"{minio_files[name]['date']})"
                     )
         else:
+            logging.info(f"{name}: creating on data.gouv.fr...")
             # if the file is not on data.gouv => upload (should not happend often)
             reorder = True
             package = get_params(*get_package_from_name(name))
@@ -754,7 +759,7 @@ def publish_on_datagouv(current_folder, ctx):
                 headers={"X-API-KEY": APIKEY_DATAGOUV}
             )
             if r_put.status_code == 200:
-                logging.info(f"{name} created in data.gouv.fr")
+                logging.info("=> Successfully created in data.gouv.fr")
 
     return reorder
 
