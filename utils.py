@@ -236,13 +236,13 @@ def send_to_minio(url, meta_urls, current_folder):
 
 def test_file_structure(filepath):
     # open and check that grib file is properly structured
-    grib = pygrib.open(filepath)
-    for msg in grib:
-        try:
+    try:
+        grib = pygrib.open(filepath)
+        for msg in grib:
             msg.values.shape
-        except:
-            return False
-    return True
+        return True
+    except:
+        return False
 
 
 def process_url(url, meta_urls, current_folder):
