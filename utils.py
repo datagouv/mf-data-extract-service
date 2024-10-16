@@ -8,7 +8,7 @@ from requests.exceptions import RequestException, Timeout
 import shutil
 import time
 from datetime import datetime, timedelta
-from typing import List, Optional, TypedDict
+from typing import List, Optional, TypedDict, Iterator
 import re
 import pygrib
 
@@ -39,125 +39,58 @@ class File(TypedDict):
     content_type: Optional[str]
 
 
-def get_minio_file(
-    MINIO_URL: str,
-    MINIO_BUCKET: str,
-    MINIO_USER: str,
-    MINIO_PASSWORD: str,
-    minio_path: str,
-    target_path: str,
-):
-    client = Minio(
-        MINIO_URL,
-        access_key=MINIO_USER,
-        secret_key=MINIO_PASSWORD,
-        secure=MINIO_SECURE,
-    )
-
-    found = client.bucket_exists(MINIO_BUCKET)
-    if found:
-        client.fget_object(MINIO_BUCKET, minio_path, target_path)
+client = Minio(
+    MINIO_URL,
+    access_key=MINIO_USER,
+    secret_key=MINIO_PASSWORD,
+    secure=MINIO_SECURE,
+)
+assert client.bucket_exists(MINIO_BUCKET)
 
 
 def send_files(
-    MINIO_URL: str,
-    MINIO_BUCKET: str,
-    MINIO_USER: str,
-    MINIO_PASSWORD: str,
     list_files: List[File]
-):
-    client = Minio(
-        MINIO_URL,
-        access_key=MINIO_USER,
-        secret_key=MINIO_PASSWORD,
-        secure=MINIO_SECURE,
-    )
-
-    found = client.bucket_exists(MINIO_BUCKET)
-
-    if found:
-        for file in list_files:
-            is_file = os.path.isfile(
-                os.path.join(file["source_path"], file["source_name"])
+) -> None:
+    for file in list_files:
+        is_file = os.path.isfile(
+            os.path.join(file["source_path"], file["source_name"])
+        )
+        if is_file:
+            dest_path = f"{file['dest_path']}{file['dest_name']}"
+            client.fput_object(
+                MINIO_BUCKET,
+                dest_path,
+                os.path.join(file["source_path"], file["source_name"]),
+                content_type=(
+                    file['content_type']
+                    if 'content_type' in file
+                    else None
+                )
             )
-            if is_file:
-                dest_path = f"{file['dest_path']}{file['dest_name']}"
-                client.fput_object(
-                    MINIO_BUCKET,
-                    dest_path,
-                    os.path.join(file["source_path"], file["source_name"]),
-                    content_type=(
-                        file['content_type']
-                        if 'content_type' in file
-                        else None
-                    )
-                )
-            else:
-                raise Exception(
-                    f"file {file['source_path']}{file['source_name']} "
-                    "does not exists"
-                )
-    else:
-        raise Exception(f"Bucket {MINIO_BUCKET} does not exists")
+        else:
+            raise Exception(
+                f"file {file['source_path']}{file['source_name']} "
+                "does not exists"
+            )
 
 
 def get_files_from_prefix(
-    MINIO_URL: str,
-    MINIO_BUCKET: str,
-    MINIO_USER: str,
-    MINIO_PASSWORD: str,
     prefix: str,
-):
-    client = Minio(
-        MINIO_URL,
-        access_key=MINIO_USER,
-        secret_key=MINIO_PASSWORD,
-        secure=MINIO_SECURE,
+) -> Iterator:
+    return client.list_objects(
+        MINIO_BUCKET,
+        prefix=prefix,
+        recursive=True
     )
-    found = client.bucket_exists(MINIO_BUCKET)
-    if found:
-        list_objects = []
-        objects = client.list_objects(
-            MINIO_BUCKET,
-            prefix=f"{prefix}",
-            recursive=True
-        )
-        for obj in objects:
-            list_objects.append(obj.object_name)
-        return list_objects
-    else:
-        raise Exception(f"Bucket {MINIO_BUCKET} does not exists")
 
 
 def delete_files_prefix(
-    MINIO_URL: str,
-    MINIO_BUCKET: str,
-    MINIO_USER: str,
-    MINIO_PASSWORD: str,
     prefix: str,
-):
+) -> None:
     """/!\ USE WITH CAUTION"""
-    client = Minio(
-        MINIO_URL,
-        access_key=MINIO_USER,
-        secret_key=MINIO_PASSWORD,
-        secure=MINIO_SECURE,
-    )
-
     try:
-        # List objects in the specified folder
-        objects = client.list_objects(
-            MINIO_BUCKET,
-            prefix=prefix,
-            recursive=True
-        )
-
-        # Create a list of object names to delete
-        objects_to_delete = [obj.object_name for obj in objects]
-
-        # Delete all objects in the folder
-        for obj_name in objects_to_delete:
-            client.remove_object(MINIO_BUCKET, obj_name)
+        for obj in get_files_from_prefix(prefix):
+            client.remove_object(MINIO_BUCKET, obj.object_name)
 
         logging.info(
             f"All objects with prefix '{prefix}' deleted successfully."
@@ -167,7 +100,7 @@ def delete_files_prefix(
         logging.info(f"Error: {e}")
 
 
-def get_last_batch_hour():
+def get_last_batch_hour() -> datetime:
     now = datetime.now()
     if now.hour < 6:
         batch_hour = 0
@@ -186,7 +119,7 @@ def get_last_batch_hour():
     return batch_time
 
 
-def download_url(url, meta_urls, retry, current_folder):
+def download_url(url, meta_urls, retry, current_folder) -> None:
     if retry != 0:
         if retry != 5:
             print("Retry " + str(5-retry) + "for " + url)
@@ -214,12 +147,12 @@ def download_url(url, meta_urls, retry, current_folder):
         )
 
 
-def send_to_minio(url, meta_urls, current_folder):
+def send_to_minio(
+    url: str,
+    meta_urls: dict,
+    current_folder: str,
+) -> None:
     send_files(
-        MINIO_URL=MINIO_URL,
-        MINIO_BUCKET=MINIO_BUCKET,
-        MINIO_USER=MINIO_USER,
-        MINIO_PASSWORD=MINIO_PASSWORD,
         list_files=[
             {
                 "source_path": current_folder + "/",
@@ -234,18 +167,22 @@ def send_to_minio(url, meta_urls, current_folder):
     logging.info(f"{meta_urls[url+':filename']} sent to minio")
 
 
-def test_file_structure(filepath):
+def test_file_structure(filepath: str) -> bool:
     # open and check that grib file is properly structured
     try:
         grib = pygrib.open(filepath)
         for msg in grib:
             msg.values.shape
         return True
-    except:
+    except Exception:
         return False
 
 
-def process_url(url, meta_urls, current_folder):
+def process_url(
+    url: str,
+    meta_urls: dict,
+    current_folder: str,
+) -> None:
     download_url(url, meta_urls, 5, current_folder)
     if test_file_structure(current_folder + "/" + meta_urls[url + ":filename"]):
         send_to_minio(url, meta_urls, current_folder)
@@ -254,14 +191,14 @@ def process_url(url, meta_urls, current_folder):
         os.remove(current_folder + "/" + meta_urls[url + ":filename"])
 
 
-def remove_and_create_folder(folder_path, toCreate):
+def remove_and_create_folder(folder_path: str, toCreate: bool) -> None:
     if os.path.exists(folder_path):
         shutil.rmtree(folder_path)
     if toCreate:
         os.makedirs(folder_path)
 
 
-def check_if_data_available(batches, url, apikey):
+def check_if_data_available(batches: list, url: str, apikey: str) -> list:
     try:
         r = requests.get(url, headers={"apikey": apikey}, timeout=10)
         new_batches = []
@@ -278,52 +215,7 @@ def check_if_data_available(batches, url, apikey):
         logging.info(f"Erreur de connexion : {e}")
 
 
-def send_processing_file(value):
-    data = {"processing": value}
-    with open("./processing.json", "w") as fp:
-        json.dump(data, fp)
-    send_files(
-        MINIO_URL=MINIO_URL,
-        MINIO_BUCKET=MINIO_BUCKET,
-        MINIO_USER=MINIO_USER,
-        MINIO_PASSWORD=MINIO_PASSWORD,
-        list_files=[
-            {
-                "source_path":  "./",
-                "source_name": "processing.json",
-                "dest_path": "",
-                "dest_name": "processing.json"
-            }
-        ],
-    )
-    os.remove("./processing.json")
-
-
-# def check_if_ongoing_process():
-#     processing = False
-#     try:
-#         get_minio_file(
-#             MINIO_URL,
-#             MINIO_BUCKET,
-#             MINIO_USER,
-#             MINIO_PASSWORD,
-#             "processing.json",
-#             "/tmp/processing.json"
-#         )
-#         with open("/tmp/processing.json", "r") as fp:
-#             data = json.load(fp)
-#         if data["processing"]: processing = data["processing"]
-#     except:
-#         logging.info("no file, creating")
-
-#     if processing:
-#         logging.info("Already processing - skip")
-#         sys.exit()
-
-#     send_processing_file(True)
-
-
-def get_latest_theorical_batches(ctx):
+def get_latest_theorical_batches(ctx: str) -> tuple[list, dict]:
     batches = []
     if ctx != "arome":
         for i in range(MAX_LAST_BATCHES):
@@ -358,7 +250,21 @@ def get_latest_theorical_batches(ctx):
     return batches, tested_batches
 
 
-def construct_all_possible_files(batches, tested_batches):
+def does_file_exist_in_minio(file: str, bucket: str = MINIO_BUCKET) -> bool:
+    try:
+        client.stat_object(bucket, file)
+        return True
+    except S3Error as e:
+        if e.code == "NoSuchKey":
+            return False
+        else:
+            raise
+
+
+def construct_all_possible_files(
+    batches: list,
+    tested_batches: dict
+) -> tuple[dict, dict]:
     list_files = []
     meta_urls = {}
     minio_paths = []
@@ -437,15 +343,10 @@ def construct_all_possible_files(batches, tested_batches):
 
     logging.info(str(len(list_files)) + " possible files")
 
-    get_list_files = get_files_from_prefix(
-        MINIO_URL=MINIO_URL,
-        MINIO_BUCKET=MINIO_BUCKET,
-        MINIO_USER=MINIO_USER,
-        MINIO_PASSWORD=MINIO_PASSWORD,
-        prefix="pnt/",
-    )
-
-    to_get = list(set(minio_paths) - set(get_list_files))
+    to_get = [
+        f for f in minio_paths
+        if not does_file_exist_in_minio(f)
+    ]
 
     logging.info(
         str(len(to_get))
@@ -454,8 +355,6 @@ def construct_all_possible_files(batches, tested_batches):
 
     if len(to_get) == 0:
         logging.info("no new data, exit")
-        # send_processing_file(False)
-        # sys.exit()
         return None
 
     family_urls = {}
@@ -475,17 +374,17 @@ def construct_all_possible_files(batches, tested_batches):
             for i in range(0, len(family_urls[fu]), BATCH_URL_SIZE_PACKAGE[fu])
         ]
 
-    return list_files, meta_urls, family_batches, get_list_files
+    return meta_urls, family_batches
 
 
 def process_urls(
-    family_batches,
-    meta_urls,
-    current_folder,
-    max_workers,
-    delay_between_batches,
-    start
-):
+    family_batches: dict,
+    meta_urls: dict,
+    current_folder: str,
+    max_workers: int,
+    delay_between_batches: int,
+    start: int,
+) -> None:
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
 
         max_iter = 0
@@ -528,7 +427,11 @@ def process_urls(
                 time.sleep(delay_between_batches)
 
 
-def processing_each_possible_files(meta_urls, current_folder, family_batches):
+def processing_each_possible_files(
+    meta_urls: dict,
+    current_folder: str,
+    family_batches: dict,
+) -> None:
 
     start = time.time()
 
@@ -547,7 +450,7 @@ def processing_each_possible_files(meta_urls, current_folder, family_batches):
     logging.info(f"Files processed in {str(round(end - start, 2))}s")
 
 
-def reorder_resources(ctx):
+def reorder_resources(ctx: str) -> None:
     for package in PACKAGES:
         if package["type_package"] in ctx.split(","):
             res_list = []
@@ -579,15 +482,8 @@ def reorder_resources(ctx):
                 logging.info(f"Error on reordering, status code {r.status_code}")
 
 
-def clean_old_runs_in_minio(batches):
-
-    get_list_files_updated = get_files_from_prefix(
-        MINIO_URL=MINIO_URL,
-        MINIO_BUCKET=MINIO_BUCKET,
-        MINIO_USER=MINIO_USER,
-        MINIO_PASSWORD=MINIO_PASSWORD,
-        prefix="pnt/",
-    )
+def clean_old_runs_in_minio(batches: list) -> None:
+    get_list_files_updated = get_files_from_prefix(prefix="pnt/")
 
     old_dates = []
     keep_dates = []
@@ -607,15 +503,11 @@ def clean_old_runs_in_minio(batches):
     if len(keep_dates) > 3:
         for od in old_dates:
             delete_files_prefix(
-                MINIO_URL=MINIO_URL,
-                MINIO_BUCKET=MINIO_BUCKET,
-                MINIO_USER=MINIO_USER,
-                MINIO_PASSWORD=MINIO_PASSWORD,
-                prefix="pnt/"+od
+                prefix="pnt/" + od
             )
 
 
-def get_package_from_name(name):
+def get_package_from_name(name: str) -> tuple[str, Optional[str], str]:
     prefix = name.split('__')[0]
     grille = name.split('__')[1]
     grille = grille[0] + '.' + ''.join(grille[1:])
@@ -630,7 +522,7 @@ def get_package_from_name(name):
     return prefix, None, grille
 
 
-def get_params(name, detail, grille):
+def get_params(name: str, detail: Optional[str], grille: str):
     for p in PACKAGES:
         if p['type_package'] == name and p['grid'] == grille:
             if detail is None:
@@ -640,15 +532,9 @@ def get_params(name, detail, grille):
     raise Exception('Should not happen')
 
 
-def publish_on_datagouv(current_folder, ctx):
+def publish_on_datagouv(current_folder: str, ctx: str) -> bool:
     reorder = False
-    get_list_files_updated = get_files_from_prefix(
-        MINIO_URL=MINIO_URL,
-        MINIO_BUCKET=MINIO_BUCKET,
-        MINIO_USER=MINIO_USER,
-        MINIO_PASSWORD=MINIO_PASSWORD,
-        prefix="pnt/",
-    )
+    get_list_files_updated = get_files_from_prefix(prefix="pnt/")
     minio_files = {}
     # re-getting minio files as they have been updated
     logging.info("Getting minio files...")
@@ -764,7 +650,7 @@ def publish_on_datagouv(current_folder, ctx):
     return reorder
 
 
-def build_tree(paths):
+def build_tree(paths: list) -> tuple[dict, str]:
     reg_datetime = r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}'
     tree = {}
     oldest = "9999"
@@ -787,16 +673,8 @@ def build_tree(paths):
     return tree, oldest
 
 
-def dump_and_send_tree():
-    client = Minio(
-        "object.files.data.gouv.fr",
-    )
-    files = client.list_objects(
-        "meteofrance-pnt",
-        prefix="pnt/",
-        recursive=True
-    )
-    tree, oldest = build_tree(files)
+def dump_and_send_tree() -> None:
+    tree, oldest = build_tree(get_files_from_prefix("pnt/"))
     with open('./pnt_tree.json', 'w') as f:
         json.dump(tree, f)
 
