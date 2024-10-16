@@ -488,6 +488,7 @@ def clean_old_runs_in_minio(batches: list) -> None:
     old_dates = []
     keep_dates = []
     for file in get_list_files_updated:
+        file = file.object_name
         if (
             file.split(".")[0].split("__")[-1] < batches[-1]
             and file.split(".")[0].split("__")[-1] not in old_dates
@@ -539,6 +540,7 @@ def publish_on_datagouv(current_folder: str, ctx: str) -> bool:
     # re-getting minio files as they have been updated
     logging.info("Getting minio files...")
     for minio_path in get_list_files_updated:
+        minio_path = minio_path.object_name
         name = "__".join(
             minio_path.split("/")[-1].split(".")[0].split("__")[:-1]
         )
