@@ -674,12 +674,7 @@ def build_tree(paths: list) -> tuple[dict, str]:
 
 
 def dump_and_send_tree() -> None:
-    files = client.list_objects(
-        MINIO_BUCKET,
-        prefix="pnt/",
-        recursive=True
-    )
-    tree, oldest = build_tree(files)
+    tree, oldest = build_tree(get_files_from_prefix("pnt/"))
     with open('./pnt_tree.json', 'w') as f:
         json.dump(tree, f)
 
