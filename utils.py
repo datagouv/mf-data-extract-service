@@ -89,19 +89,8 @@ def delete_files_prefix(
 ) -> None:
     """/!\ USE WITH CAUTION"""
     try:
-        # List objects in the specified folder
-        objects = client.list_objects(
-            MINIO_BUCKET,
-            prefix=prefix,
-            recursive=True
-        )
-
-        # Create a list of object names to delete
-        objects_to_delete = [obj.object_name for obj in objects]
-
-        # Delete all objects in the folder
-        for obj_name in objects_to_delete:
-            client.remove_object(MINIO_BUCKET, obj_name)
+        for obj in get_files_from_prefix(prefix):
+            client.remove_object(MINIO_BUCKET, obj.object_name)
 
         logging.info(
             f"All objects with prefix '{prefix}' deleted successfully."
