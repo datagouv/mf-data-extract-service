@@ -77,15 +77,11 @@ def send_files(
 def get_files_from_prefix(
     prefix: str,
 ):
-    list_objects = []
-    objects = client.list_objects(
+    return client.list_objects(
         MINIO_BUCKET,
         prefix=f"{prefix}",
         recursive=True
     )
-    for obj in objects:
-        list_objects.append(obj.object_name)
-    return list_objects
 
 
 def delete_files_prefix(
@@ -222,23 +218,6 @@ def check_if_data_available(batches, url, apikey):
         logging.info(f"Erreur de connexion : {e}")
 
 
-def send_processing_file(value):
-    data = {"processing": value}
-    with open("./processing.json", "w") as fp:
-        json.dump(data, fp)
-    send_files(
-        list_files=[
-            {
-                "source_path":  "./",
-                "source_name": "processing.json",
-                "dest_path": "",
-                "dest_name": "processing.json"
-            }
-        ],
-    )
-    os.remove("./processing.json")
-
-
 def get_latest_theorical_batches(ctx):
     batches = []
     if ctx != "arome":
@@ -272,6 +251,17 @@ def get_latest_theorical_batches(ctx):
                     PACK["apikey"]
                 )
     return batches, tested_batches
+
+
+def does_file_exist_in_minio(file, bucket=MINIO_BUCKET):
+    try:
+        client.stat_object(bucket, file)
+        return True
+    except S3Error as e:
+        if e.code == "NoSuchKey":
+            return False
+        else:
+            raise
 
 
 def construct_all_possible_files(batches, tested_batches):
@@ -353,11 +343,10 @@ def construct_all_possible_files(batches, tested_batches):
 
     logging.info(str(len(list_files)) + " possible files")
 
-    get_list_files = get_files_from_prefix(
-        prefix="pnt/",
-    )
-
-    to_get = list(set(minio_paths) - set(get_list_files))
+    to_get = [
+        f for f in minio_paths
+        if not does_file_exist_in_minio(f)
+    ]
 
     logging.info(
         str(len(to_get))
@@ -366,8 +355,6 @@ def construct_all_possible_files(batches, tested_batches):
 
     if len(to_get) == 0:
         logging.info("no new data, exit")
-        # send_processing_file(False)
-        # sys.exit()
         return None
 
     family_urls = {}
@@ -387,7 +374,7 @@ def construct_all_possible_files(batches, tested_batches):
             for i in range(0, len(family_urls[fu]), BATCH_URL_SIZE_PACKAGE[fu])
         ]
 
-    return list_files, meta_urls, family_batches, get_list_files
+    return meta_urls, family_batches
 
 
 def process_urls(
@@ -492,10 +479,7 @@ def reorder_resources(ctx):
 
 
 def clean_old_runs_in_minio(batches):
-
-    get_list_files_updated = get_files_from_prefix(
-        prefix="pnt/",
-    )
+    get_list_files_updated = get_files_from_prefix(prefix="pnt/")
 
     old_dates = []
     keep_dates = []
@@ -546,9 +530,7 @@ def get_params(name, detail, grille):
 
 def publish_on_datagouv(current_folder, ctx):
     reorder = False
-    get_list_files_updated = get_files_from_prefix(
-        prefix="pnt/",
-    )
+    get_list_files_updated = get_files_from_prefix(prefix="pnt/")
     minio_files = {}
     # re-getting minio files as they have been updated
     logging.info("Getting minio files...")

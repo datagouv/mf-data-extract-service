@@ -52,7 +52,7 @@ if __name__ == "__main__":
             continue
 
         if result is not None:
-            list_files, meta_urls, family_batches, get_list_files = result
+            meta_urls, family_batches = result
         else:
             skip = True
 
