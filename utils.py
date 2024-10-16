@@ -8,7 +8,7 @@ from requests.exceptions import RequestException, Timeout
 import shutil
 import time
 from datetime import datetime, timedelta
-from typing import List, Optional, TypedDict
+from typing import List, Optional, TypedDict, Iterator
 import re
 import pygrib
 
@@ -50,7 +50,7 @@ assert client.bucket_exists(MINIO_BUCKET)
 
 def send_files(
     list_files: List[File]
-):
+) -> None:
     for file in list_files:
         is_file = os.path.isfile(
             os.path.join(file["source_path"], file["source_name"])
@@ -76,7 +76,7 @@ def send_files(
 
 def get_files_from_prefix(
     prefix: str,
-):
+) -> Iterator:
     return client.list_objects(
         MINIO_BUCKET,
         prefix=f"{prefix}",
@@ -86,7 +86,7 @@ def get_files_from_prefix(
 
 def delete_files_prefix(
     prefix: str,
-):
+) -> None:
     """/!\ USE WITH CAUTION"""
     try:
         # List objects in the specified folder
@@ -111,7 +111,7 @@ def delete_files_prefix(
         logging.info(f"Error: {e}")
 
 
-def get_last_batch_hour():
+def get_last_batch_hour() -> datetime:
     now = datetime.now()
     if now.hour < 6:
         batch_hour = 0
@@ -130,7 +130,7 @@ def get_last_batch_hour():
     return batch_time
 
 
-def download_url(url, meta_urls, retry, current_folder):
+def download_url(url, meta_urls, retry, current_folder) -> None:
     if retry != 0:
         if retry != 5:
             print("Retry " + str(5-retry) + "for " + url)
@@ -158,7 +158,11 @@ def download_url(url, meta_urls, retry, current_folder):
         )
 
 
-def send_to_minio(url, meta_urls, current_folder):
+def send_to_minio(
+    url: str,
+    meta_urls: dict,
+    current_folder: str,
+) -> None:
     send_files(
         list_files=[
             {
@@ -174,7 +178,7 @@ def send_to_minio(url, meta_urls, current_folder):
     logging.info(f"{meta_urls[url+':filename']} sent to minio")
 
 
-def test_file_structure(filepath):
+def test_file_structure(filepath: str) -> bool:
     # open and check that grib file is properly structured
     try:
         grib = pygrib.open(filepath)
@@ -185,7 +189,11 @@ def test_file_structure(filepath):
         return False
 
 
-def process_url(url, meta_urls, current_folder):
+def process_url(
+    url: str,
+    meta_urls: dict,
+    current_folder: str,
+) -> None:
     download_url(url, meta_urls, 5, current_folder)
     if test_file_structure(current_folder + "/" + meta_urls[url + ":filename"]):
         send_to_minio(url, meta_urls, current_folder)
@@ -194,14 +202,14 @@ def process_url(url, meta_urls, current_folder):
         os.remove(current_folder + "/" + meta_urls[url + ":filename"])
 
 
-def remove_and_create_folder(folder_path, toCreate):
+def remove_and_create_folder(folder_path: str, toCreate: bool) -> None:
     if os.path.exists(folder_path):
         shutil.rmtree(folder_path)
     if toCreate:
         os.makedirs(folder_path)
 
 
-def check_if_data_available(batches, url, apikey):
+def check_if_data_available(batches: list, url: str, apikey: str) -> list:
     try:
         r = requests.get(url, headers={"apikey": apikey}, timeout=10)
         new_batches = []
@@ -218,7 +226,7 @@ def check_if_data_available(batches, url, apikey):
         logging.info(f"Erreur de connexion : {e}")
 
 
-def get_latest_theorical_batches(ctx):
+def get_latest_theorical_batches(ctx: str) -> tuple[list, dict]:
     batches = []
     if ctx != "arome":
         for i in range(MAX_LAST_BATCHES):
@@ -253,7 +261,7 @@ def get_latest_theorical_batches(ctx):
     return batches, tested_batches
 
 
-def does_file_exist_in_minio(file, bucket=MINIO_BUCKET):
+def does_file_exist_in_minio(file: str, bucket: str = MINIO_BUCKET) -> bool:
     try:
         client.stat_object(bucket, file)
         return True
@@ -264,7 +272,10 @@ def does_file_exist_in_minio(file, bucket=MINIO_BUCKET):
             raise
 
 
-def construct_all_possible_files(batches, tested_batches):
+def construct_all_possible_files(
+    batches: list,
+    tested_batches: dict
+) -> tuple[dict, dict]:
     list_files = []
     meta_urls = {}
     minio_paths = []
@@ -378,13 +389,13 @@ def construct_all_possible_files(batches, tested_batches):
 
 
 def process_urls(
-    family_batches,
-    meta_urls,
-    current_folder,
-    max_workers,
-    delay_between_batches,
-    start
-):
+    family_batches: dict,
+    meta_urls: dict,
+    current_folder: str,
+    max_workers: int,
+    delay_between_batches: int,
+    start: int,
+) -> None:
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
 
         max_iter = 0
@@ -427,7 +438,11 @@ def process_urls(
                 time.sleep(delay_between_batches)
 
 
-def processing_each_possible_files(meta_urls, current_folder, family_batches):
+def processing_each_possible_files(
+    meta_urls: dict,
+    current_folder: str,
+    family_batches: dict,
+) -> None:
 
     start = time.time()
 
@@ -446,7 +461,7 @@ def processing_each_possible_files(meta_urls, current_folder, family_batches):
     logging.info(f"Files processed in {str(round(end - start, 2))}s")
 
 
-def reorder_resources(ctx):
+def reorder_resources(ctx: str) -> None:
     for package in PACKAGES:
         if package["type_package"] in ctx.split(","):
             res_list = []
@@ -478,7 +493,7 @@ def reorder_resources(ctx):
                 logging.info(f"Error on reordering, status code {r.status_code}")
 
 
-def clean_old_runs_in_minio(batches):
+def clean_old_runs_in_minio(batches: list) -> None:
     get_list_files_updated = get_files_from_prefix(prefix="pnt/")
 
     old_dates = []
@@ -503,7 +518,7 @@ def clean_old_runs_in_minio(batches):
             )
 
 
-def get_package_from_name(name):
+def get_package_from_name(name: str) -> tuple[str, Optional[str], str]:
     prefix = name.split('__')[0]
     grille = name.split('__')[1]
     grille = grille[0] + '.' + ''.join(grille[1:])
@@ -518,7 +533,7 @@ def get_package_from_name(name):
     return prefix, None, grille
 
 
-def get_params(name, detail, grille):
+def get_params(name: str, detail: Optional[str], grille: str):
     for p in PACKAGES:
         if p['type_package'] == name and p['grid'] == grille:
             if detail is None:
@@ -528,7 +543,7 @@ def get_params(name, detail, grille):
     raise Exception('Should not happen')
 
 
-def publish_on_datagouv(current_folder, ctx):
+def publish_on_datagouv(current_folder: str, ctx: str) -> bool:
     reorder = False
     get_list_files_updated = get_files_from_prefix(prefix="pnt/")
     minio_files = {}
@@ -646,7 +661,7 @@ def publish_on_datagouv(current_folder, ctx):
     return reorder
 
 
-def build_tree(paths):
+def build_tree(paths: list) -> tuple[dict, str]:
     reg_datetime = r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}'
     tree = {}
     oldest = "9999"
@@ -669,7 +684,7 @@ def build_tree(paths):
     return tree, oldest
 
 
-def dump_and_send_tree():
+def dump_and_send_tree() -> None:
     files = client.list_objects(
         MINIO_BUCKET,
         prefix="pnt/",
