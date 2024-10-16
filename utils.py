@@ -79,7 +79,7 @@ def get_files_from_prefix(
 ) -> Iterator:
     return client.list_objects(
         MINIO_BUCKET,
-        prefix=f"{prefix}",
+        prefix=prefix,
         recursive=True
     )
 
