@@ -79,10 +79,6 @@ if __name__ == "__main__":
             time.sleep(cooldown)
             continue
 
-        if not skip:
-            logging.info("---- Getting file tree on minio and update it on data.gouv ----")
-            dump_and_send_tree()
-
         logging.info("---- Remove files in minio and data.gouv.fr if more than MAX BATCH SIZE ----")
         clean_old_runs_in_minio(batches)
 
