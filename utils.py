@@ -83,14 +83,16 @@ def get_files_from_prefix(
     )
 
 
-def get_files_from_package(
+def get_latest_files_from_package(
     package: str,
 ):
-    echeances = get_files_from_prefix(
+    runs = get_files_from_prefix(
         prefix="pnt/",
         recursive=False
     )
-    for pref in [f.object_name for f in echeances]:
+    # for better perfs, getting ony the latest 8 runs
+    # (will be latest 4 for all except arome, which runs */3)
+    for pref in sorted([f.object_name for f in runs])[-8:]:
         for f in get_files_from_prefix(
             prefix=pref + f"{package}/",
             recursive=True
@@ -554,7 +556,7 @@ def get_params(name: str, detail: Optional[str], grille: str):
 
 def publish_on_datagouv(current_folder: str, ctx: str) -> bool:
     reorder = False
-    get_list_files_updated = get_files_from_package(ctx)
+    get_list_files_updated = get_latest_files_from_package(ctx)
     minio_files = {}
     # re-getting minio files as they have been updated
     # only for the current package type
