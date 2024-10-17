@@ -562,7 +562,6 @@ def publish_on_datagouv(current_folder: str, ctx: str) -> bool:
     # only for the current package type
     logging.info("Getting minio files...")
     for minio_path in get_list_files_updated:
-        minio_path = minio_path.object_name
         name = "__".join(
             minio_path.split("/")[-1].split(".")[0].split("__")[:-1]
         )
