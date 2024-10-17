@@ -11,7 +11,6 @@ from utils import (
     publish_on_datagouv,
     remove_and_create_folder,
     reorder_resources,
-    dump_and_send_tree,
 )
 
 logging.basicConfig(level=logging.INFO)
