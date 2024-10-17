@@ -74,11 +74,12 @@ def send_files(
 
 def get_files_from_prefix(
     prefix: str,
+    recursive: bool,
 ) -> Iterator:
     return client.list_objects(
         MINIO_BUCKET,
         prefix=prefix,
-        recursive=True
+        recursive=recursive,
     )
 
 
@@ -87,7 +88,7 @@ def delete_files_prefix(
 ) -> None:
     """/!\ USE WITH CAUTION"""
     try:
-        for obj in get_files_from_prefix(prefix):
+        for obj in get_files_from_prefix(prefix, recursive=True):
             client.remove_object(MINIO_BUCKET, obj.object_name)
 
         logging.info(
@@ -481,23 +482,27 @@ def reorder_resources(ctx: str) -> None:
 
 
 def clean_old_runs_in_minio(batches: list) -> None:
-    get_list_files_updated = get_files_from_prefix(prefix="pnt/")
+    get_list_runs = get_files_from_prefix(
+        prefix="pnt/",
+        recursive=False,
+    )
 
     old_dates = []
     keep_dates = []
-    for file in get_list_files_updated:
-        file = file.object_name
+    for run in get_list_runs:
+        # object_name looks like "pnt/2024-10-02T00:00:00Z/" 
+        run = run.object_name.split('/')[1]
         if (
-            file.split(".")[0].split("__")[-1] < batches[-1]
-            and file.split(".")[0].split("__")[-1] not in old_dates
+            run < batches[-1]
+            and run not in old_dates
         ):
-            old_dates.append(file.split(".")[0].split("__")[-1])
+            old_dates.append(run)
 
         if (
-            file.split(".")[0].split("__")[-1] >= batches[-1]
-            and file.split(".")[0].split("__")[-1] not in keep_dates
+            run >= batches[-1]
+            and run not in keep_dates
         ):
-            keep_dates.append(file.split(".")[0].split("__")[-1])
+            keep_dates.append(run)
 
     if len(keep_dates) > 3:
         for od in old_dates:
