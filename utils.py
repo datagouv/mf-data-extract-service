@@ -1,5 +1,4 @@
 import concurrent.futures
-import json
 import logging
 import os
 import random
@@ -9,10 +8,9 @@ import shutil
 import time
 from datetime import datetime, timedelta
 from typing import List, Optional, TypedDict, Iterator
-import re
 import pygrib
 
-from minio import Minio, datatypes
+from minio import Minio
 from minio.error import S3Error
 
 from config import (
@@ -650,61 +648,3 @@ def publish_on_datagouv(current_folder: str, ctx: str) -> bool:
                 logging.info("=> Successfully created in data.gouv.fr")
 
     return reorder
-
-
-def build_tree(paths: list) -> tuple[dict, str]:
-    reg_datetime = r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}'
-    tree = {}
-    oldest = "9999"
-    for i, path in enumerate(paths):
-        if isinstance(path, datatypes.Object):
-            path = path.object_name
-        parts = path.split('/')
-        *dirs, file = parts
-        dt = re.findall(reg_datetime, file)[0]
-        oldest = min(dt, oldest)
-        current_level = tree
-        for idx, part in enumerate(dirs):
-            if idx == len(dirs)-1:
-                if not current_level.get(part):
-                    current_level[part] = []
-                current_level[part].append(file)
-            elif part not in current_level:
-                current_level[part] = {}
-            current_level = current_level[part]
-    return tree, oldest
-
-
-def dump_and_send_tree() -> None:
-    tree, oldest = build_tree(get_files_from_prefix("pnt/"))
-    with open('./pnt_tree.json', 'w') as f:
-        json.dump(tree, f)
-
-    files = {"file": open("./pnt_tree.json", "rb",)}
-    url = (
-        f"{DATAGOUV_URL}/api/1/datasets/66d02b7174375550d7b10f3f/"
-        "resources/ab77c9d0-3db4-4c2f-ae56-5a52ae824eeb/upload/"
-    )
-    r = requests.post(
-        url,
-        files=files,
-        headers={"X-API-KEY": APIKEY_DATAGOUV},
-    )
-    r.raise_for_status()
-    r = requests.put(
-        url.replace("upload/", ""),
-        json={"title": "Arborescence des dossiers sur le dépôt"},
-        headers={"X-API-KEY": APIKEY_DATAGOUV},
-    )
-    r.raise_for_status()
-    r = requests.put(
-        f"{DATAGOUV_URL}/api/1/datasets/66d02b7174375550d7b10f3f/",
-        json={
-            "temporal_coverage": {
-                "start": oldest + ".000000+00:00",
-                "end": datetime.today().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-            }
-        },
-        headers={"X-API-KEY": APIKEY_DATAGOUV},
-    )
-    r.raise_for_status()
