@@ -74,12 +74,30 @@ def send_files(
 
 def get_files_from_prefix(
     prefix: str,
+    recursive: bool,
 ) -> Iterator:
     return client.list_objects(
         MINIO_BUCKET,
         prefix=prefix,
-        recursive=True
+        recursive=recursive,
     )
+
+
+def get_latest_files_from_package(
+    package: str,
+):
+    runs = get_files_from_prefix(
+        prefix="pnt/",
+        recursive=False
+    )
+    # for better perfs, getting ony the latest 8 runs
+    # (will be latest 4 for all except arome, which runs */3)
+    for pref in sorted([f.object_name for f in runs])[-8:]:
+        for f in get_files_from_prefix(
+            prefix=pref + f"{package}/",
+            recursive=True
+        ):
+            yield f.object_name
 
 
 def delete_files_prefix(
@@ -87,7 +105,7 @@ def delete_files_prefix(
 ) -> None:
     """/!\ USE WITH CAUTION"""
     try:
-        for obj in get_files_from_prefix(prefix):
+        for obj in get_files_from_prefix(prefix, recursive=True):
             client.remove_object(MINIO_BUCKET, obj.object_name)
 
         logging.info(
@@ -481,23 +499,28 @@ def reorder_resources(ctx: str) -> None:
 
 
 def clean_old_runs_in_minio(batches: list) -> None:
-    get_list_files_updated = get_files_from_prefix(prefix="pnt/")
+    # we get the run's names from the folders
+    get_list_runs = get_files_from_prefix(
+        prefix="pnt/",
+        recursive=False,
+    )
 
     old_dates = []
     keep_dates = []
-    for file in get_list_files_updated:
-        file = file.object_name
+    for run in get_list_runs:
+        # run.object_name looks like "pnt/2024-10-02T00:00:00Z/"
+        run = run.object_name.split('/')[1]
         if (
-            file.split(".")[0].split("__")[-1] < batches[-1]
-            and file.split(".")[0].split("__")[-1] not in old_dates
+            run < batches[-1]
+            and run not in old_dates
         ):
-            old_dates.append(file.split(".")[0].split("__")[-1])
+            old_dates.append(run)
 
         if (
-            file.split(".")[0].split("__")[-1] >= batches[-1]
-            and file.split(".")[0].split("__")[-1] not in keep_dates
+            run >= batches[-1]
+            and run not in keep_dates
         ):
-            keep_dates.append(file.split(".")[0].split("__")[-1])
+            keep_dates.append(run)
 
     if len(keep_dates) > 3:
         for od in old_dates:
@@ -533,9 +556,10 @@ def get_params(name: str, detail: Optional[str], grille: str):
 
 def publish_on_datagouv(current_folder: str, ctx: str) -> bool:
     reorder = False
-    get_list_files_updated = get_files_from_prefix(prefix="pnt/")
+    get_list_files_updated = get_latest_files_from_package(ctx)
     minio_files = {}
     # re-getting minio files as they have been updated
+    # only for the current package type
     logging.info("Getting minio files...")
     for minio_path in get_list_files_updated:
         minio_path = minio_path.object_name
@@ -574,6 +598,7 @@ def publish_on_datagouv(current_folder: str, ctx: str) -> bool:
 
     logging.info("Synchronizing...")
     for name in minio_files:
+        # skipping if not the current package type
         if get_package_from_name(name)[0] not in ctx.split(","):
             continue
         # if the file is already on data.gouv and it's more recent on minio => upload

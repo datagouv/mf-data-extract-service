@@ -32,6 +32,7 @@ if __name__ == "__main__":
         skip = False
 
         ctx = sys.argv[1]
+        logging.info("ctx:", ctx)
         current_folder = "./data" + "-" + ctx.replace(",", "-")
 
         logging.info("---- Remove and create local data folder ----")
@@ -39,6 +40,9 @@ if __name__ == "__main__":
 
         logging.info("---- Get latest theorical batches -----")
         batches, tested_batches = get_latest_theorical_batches(ctx)
+
+        logging.info("---- Remove files in minio and data.gouv.fr if more than MAX BATCH SIZE ----")
+        clean_old_runs_in_minio(batches)
 
         logging.info("---- Construct all possible files ----")
         try:
@@ -77,9 +81,6 @@ if __name__ == "__main__":
             logging.info(f"Restarting a process in {cooldown}s")
             time.sleep(cooldown)
             continue
-
-        logging.info("---- Remove files in minio and data.gouv.fr if more than MAX BATCH SIZE ----")
-        clean_old_runs_in_minio(batches)
 
         logging.info("---- Delete local data folder ----")
         remove_and_create_folder(current_folder, False)
