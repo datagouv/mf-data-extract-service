@@ -83,6 +83,21 @@ def get_files_from_prefix(
     )
 
 
+def get_files_from_package(
+    package: str,
+):
+    echeances = get_files_from_prefix(
+        prefix="pnt/",
+        recursive=False
+    )
+    for pref in [f.object_name for f in echeances]:
+        for f in get_files_from_prefix(
+            prefix=pref + f"{package}/",
+            recursive=True
+        ):
+            yield f.object_name
+
+
 def delete_files_prefix(
     prefix: str,
 ) -> None:
@@ -482,6 +497,7 @@ def reorder_resources(ctx: str) -> None:
 
 
 def clean_old_runs_in_minio(batches: list) -> None:
+    # we get the run's names from the folders
     get_list_runs = get_files_from_prefix(
         prefix="pnt/",
         recursive=False,
@@ -490,7 +506,7 @@ def clean_old_runs_in_minio(batches: list) -> None:
     old_dates = []
     keep_dates = []
     for run in get_list_runs:
-        # object_name looks like "pnt/2024-10-02T00:00:00Z/" 
+        # run.object_name looks like "pnt/2024-10-02T00:00:00Z/"
         run = run.object_name.split('/')[1]
         if (
             run < batches[-1]
@@ -538,9 +554,10 @@ def get_params(name: str, detail: Optional[str], grille: str):
 
 def publish_on_datagouv(current_folder: str, ctx: str) -> bool:
     reorder = False
-    get_list_files_updated = get_files_from_prefix(prefix="pnt/")
+    get_list_files_updated = get_files_from_package(ctx)
     minio_files = {}
     # re-getting minio files as they have been updated
+    # only for the current package type
     logging.info("Getting minio files...")
     for minio_path in get_list_files_updated:
         minio_path = minio_path.object_name
@@ -579,6 +596,7 @@ def publish_on_datagouv(current_folder: str, ctx: str) -> bool:
 
     logging.info("Synchronizing...")
     for name in minio_files:
+        # skipping if not the current package type
         if get_package_from_name(name)[0] not in ctx.split(","):
             continue
         # if the file is already on data.gouv and it's more recent on minio => upload
