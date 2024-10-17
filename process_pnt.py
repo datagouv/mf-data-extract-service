@@ -32,7 +32,7 @@ if __name__ == "__main__":
         skip = False
 
         ctx = sys.argv[1]
-        logging.info("ctx:", ctx)
+        logging.info(f"ctx: {ctx}, type: {type(ctx)}")
         current_folder = "./data" + "-" + ctx.replace(",", "-")
 
         logging.info("---- Remove and create local data folder ----")
