@@ -602,8 +602,8 @@ def publish_on_datagouv(current_folder: str, ctx: str) -> bool:
             continue
         # if the file is already on data.gouv and it's more recent on minio => upload
         if name in datagouv_files:
-            logging.info(f"{name}: updating on data.gouv.fr...")
             if minio_files[name]['date'] > datagouv_files[name]['date']:
+                logging.info(f"{name}: updating on data.gouv.fr...")
                 reorder = True
                 filename = (
                     name + "__"
