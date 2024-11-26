@@ -222,7 +222,7 @@ def process_url(
     if test_file_structure(current_folder + "/" + meta_urls[url + ":filename"]):
         send_to_minio(url, meta_urls, current_folder)
     else:
-        logging.warning(meta_urls[url + ":filename"], "is badly structured, deleting...")
+        logging.warning(meta_urls[url + ":filename"] + " is badly structured, deleting...")
         os.remove(current_folder + "/" + meta_urls[url + ":filename"])
         log_and_send_error(meta_urls[url + ":filename"])
 
@@ -436,7 +436,7 @@ def process_urls(
             for fb in family_batches:
                 if len(family_batches[fb]) > i:
                     batch = batch + family_batches[fb][i]
-                    # logging.info(fb, len(family_batches[fb][i]))
+                    # logging.info(fb + " " + len(family_batches[fb][i]))
             url_batches.append(batch)
 
         # url_batches = [
