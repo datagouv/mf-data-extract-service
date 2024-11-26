@@ -204,9 +204,9 @@ def log_and_send_error(filename):
         list_files=[
             {
                 "source_path": LOG_PATH,
-                "source_name": filename,
+                "source_name": log_name,
                 "dest_path": "logs/",
-                "dest_name": filename,
+                "dest_name": log_name,
             }
         ],
     )
