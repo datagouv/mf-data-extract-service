@@ -190,7 +190,8 @@ def test_file_structure(filepath: str) -> bool:
         for msg in grib:
             msg.values.shape
         return True
-    except Exception:
+    except Exception as e:
+        logging.warning(f"An error occured for {filepath}: `{e}`")
         return False
 
 
