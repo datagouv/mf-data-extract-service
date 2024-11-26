@@ -44,6 +44,7 @@ client = Minio(
     secure=MINIO_SECURE,
 )
 assert client.bucket_exists(MINIO_BUCKET)
+LOG_PATH = "./logs/"
 
 
 def send_files(
@@ -138,7 +139,7 @@ def get_last_batch_hour() -> datetime:
 def download_url(url, meta_urls, retry, current_folder) -> None:
     if retry != 0:
         if retry != 5:
-            print("Retry " + str(5-retry) + "for " + url)
+            logging.warning("Retry " + str(5-retry) + "for " + url)
         try:
             filename = meta_urls[url + ":filename"]
             headers = meta_urls[url + ":headers"]
@@ -190,8 +191,26 @@ def test_file_structure(filepath: str) -> bool:
         for msg in grib:
             msg.values.shape
         return True
-    except Exception:
+    except Exception as e:
+        logging.warning(f"An error occured for {filepath}: `{e}`")
         return False
+
+
+def log_and_send_error(filename):
+    log_name = f"{filename.split('.')[0]}-{int(datetime.now().timestamp())}.log"
+    with open(LOG_PATH + log_name, "w") as f:
+        f.write(f"{filename};{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    send_files(
+        list_files=[
+            {
+                "source_path": LOG_PATH,
+                "source_name": log_name,
+                "dest_path": "logs/",
+                "dest_name": log_name,
+            }
+        ],
+    )
+    os.remove(LOG_PATH + log_name)
 
 
 def process_url(
@@ -203,8 +222,9 @@ def process_url(
     if test_file_structure(current_folder + "/" + meta_urls[url + ":filename"]):
         send_to_minio(url, meta_urls, current_folder)
     else:
-        print(meta_urls[url + ":filename"], "is badly structured, deleting...")
+        logging.warning(meta_urls[url + ":filename"], "is badly structured, deleting...")
         os.remove(current_folder + "/" + meta_urls[url + ":filename"])
+        log_and_send_error(meta_urls[url + ":filename"])
 
 
 def remove_and_create_folder(folder_path: str, toCreate: bool) -> None:
@@ -416,7 +436,7 @@ def process_urls(
             for fb in family_batches:
                 if len(family_batches[fb]) > i:
                     batch = batch + family_batches[fb][i]
-                    print(fb, len(family_batches[fb][i]))
+                    # logging.info(fb, len(family_batches[fb][i]))
             url_batches.append(batch)
 
         # url_batches = [
