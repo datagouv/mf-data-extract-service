@@ -26,6 +26,7 @@ from config import (
     MINIO_SECURE,
     PACKAGES,
     ENV_NAME,
+    APPLICATION_ID,
 )
 
 
@@ -45,6 +46,52 @@ client = Minio(
 )
 assert client.bucket_exists(MINIO_BUCKET)
 LOG_PATH = "./logs/"
+
+
+class Meteo_client(object):
+
+    def __init__(self):
+        self.session = requests.Session()
+
+    def request(self, method, url, **kwargs):
+        # First request will always need to obtain a token first
+        if 'Authorization' not in self.session.headers:
+            self.obtain_token()
+        # Optimistically attempt to dispatch request
+        response = self.session.request(method, url, **kwargs)
+        if self.token_has_expired(response):
+            # We got an 'Access token expired' response => refresh token
+            self.obtain_token()
+            # Re-dispatch the request that previously failed
+            response = self.session.request(method, url, **kwargs)
+        return response
+
+    def get(self, url, **kwargs):
+        return self.request("GET", url, **kwargs)
+
+    def token_has_expired(self, response):
+        status = response.status_code
+        content_type = response.headers['Content-Type']
+        if status == 401 and 'application/json' in content_type:
+            if 'Invalid JWT token' in response.json()['description']:
+                return True
+        return False
+
+    def obtain_token(self):
+        # Obtain new token
+        access_token_response = requests.post(
+            "https://portail-api.meteofrance.fr/token",
+            data={'grant_type': 'client_credentials'},
+            verify=False,
+            allow_redirects=False,
+            headers={'Authorization': 'Basic ' + APPLICATION_ID},
+        )
+        token = access_token_response.json()['access_token']
+        # Update session with fresh token
+        self.session.headers.update({'Authorization': f'Bearer {token}'})
+
+
+meteo_client = Meteo_client()
 
 
 def send_files(
@@ -142,12 +189,12 @@ def download_url(url, meta_urls, retry, current_folder) -> None:
             logging.warning("Retry " + str(5-retry) + "for " + url)
         try:
             filename = meta_urls[url + ":filename"]
-            headers = meta_urls[url + ":headers"]
-            with requests.get(
+            with meteo_client.get(
                 url,
                 stream=True,
-                headers=headers,
-                timeout=60
+                timeout=60,
+                # do we actually need these headers? response content type is binary
+                headers={"Content-Type": "application/json; charset=utf-8"},
             ) as r:
                 r.raise_for_status()
                 with open(current_folder + "/" + filename, 'wb') as f:
@@ -234,9 +281,9 @@ def remove_and_create_folder(folder_path: str, toCreate: bool) -> None:
         os.makedirs(folder_path)
 
 
-def check_if_data_available(batches: list, url: str, apikey: str) -> list:
+def check_if_data_available(batches: list, url: str) -> list:
     try:
-        r = requests.get(url, headers={"apikey": apikey}, timeout=10)
+        r = meteo_client.get(url, timeout=10)
         new_batches = []
         try:
             if "links" in r.json():
@@ -281,7 +328,6 @@ def get_latest_theorical_batches(ctx: str) -> tuple[list, dict]:
                 tested_batches[test_batch] = check_if_data_available(
                     batches,
                     PACK["check_availability_url"],
-                    PACK["apikey"]
                 )
     return batches, tested_batches
 
@@ -324,10 +370,6 @@ def construct_all_possible_files(
             ):
                 for package in family_package["packages"]:
                     for timeslot in package["time"]:
-                        headers = {
-                            "Content-Type": "application/json; charset=utf-8",
-                            "apikey": family_package["apikey"]
-                        }
                         if family_package["detail_package"]:
                             base_path = (
                                 family_package["type_package"] + "/"
@@ -362,7 +404,6 @@ def construct_all_possible_files(
                             + package["name"] + "/" + filename
                         )
                         list_files.append(filename)
-                        meta_urls[url+":headers"] = headers
                         meta_urls[url+":filename"] = filename
                         meta_urls[url+":minio_path"] = minio_path.split(filename)[0]
                         meta_urls[filename+":url"] = url
@@ -453,7 +494,7 @@ def process_urls(
             )
             logging.info(str(len(batch)) + " urls to process in this batch")
             # Lancez les requêtes pour chaque URL dans le paquet simultanément
-            futures = [
+            _ = [
                 executor.submit(process_url, url, meta_urls, current_folder)
                 for url in batch
             ]
