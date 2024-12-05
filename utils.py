@@ -49,6 +49,7 @@ LOG_PATH = "./logs/"
 
 
 class Meteo_client(object):
+    # code is courtesy of Météo France: https://portail-api.meteofrance.fr/web/fr/faq
 
     def __init__(self):
         self.session = requests.Session()
