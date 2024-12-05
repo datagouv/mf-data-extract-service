@@ -49,7 +49,7 @@ assert client.bucket_exists(MINIO_BUCKET)
 LOG_PATH = "./logs/"
 
 
-class Meteo_client(object):
+class MeteoClient(object):
     # code is courtesy of Météo France: https://portail-api.meteofrance.fr/web/fr/faq
 
     def __init__(self):
