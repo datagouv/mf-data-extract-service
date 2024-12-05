@@ -9,6 +9,7 @@ import time
 from datetime import datetime, timedelta
 from typing import List, Optional, TypedDict, Iterator
 import pygrib
+import json
 
 from minio import Minio
 from minio.error import S3Error
@@ -79,17 +80,37 @@ class Meteo_client(object):
         return False
 
     def obtain_token(self):
-        # Obtain new token
-        access_token_response = requests.post(
-            "https://portail-api.meteofrance.fr/token",
-            data={'grant_type': 'client_credentials'},
-            verify=False,
-            allow_redirects=False,
-            headers={'Authorization': 'Basic ' + APPLICATION_ID},
-        )
-        token = access_token_response.json()['access_token']
-        # Update session with fresh token
-        self.session.headers.update({'Authorization': f'Bearer {token}'})
+        # if threads are synchronous (for example on start), this should space them out
+        time.sleep(random.randint(1, 5))
+        if "token.json" not in os.listdir():
+            # Obtain new token
+            data = {'grant_type': 'client_credentials'}
+            headers = {'Authorization': 'Basic ' + APPLICATION_ID}
+            access_token_response = requests.post(
+                "https://portail-api.meteofrance.fr/token",
+                data=data,
+                headers=headers
+            )
+            token = access_token_response.json()['access_token']
+            with open("token.json", "w") as f:
+                json.dump({"token": token}, f)
+            # Update session with fresh token
+            self.session.headers.update({'Authorization': f'Bearer {token}'})
+            logging.info("Fetched and saved new token")
+        else:
+            logging.info("Checking token.json")
+            with open("token.json", "r") as f:
+                token = json.load(f)["token"]
+            self.session.headers.update({'Authorization': f'Bearer {token}'})
+            response = self.session.request(
+                "GET",
+                # this is just an example URL to check potential expiration
+                "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/MFWAM/grids",
+            )
+            if self.token_has_expired(response):
+                logging.warning("Token has expired, fetching a fresh one")
+                os.remove("token.json")
+                self.obtain_token()
 
 
 meteo_client = Meteo_client()
