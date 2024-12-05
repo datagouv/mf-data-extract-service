@@ -301,7 +301,7 @@ def remove_and_create_folder(folder_path: str, toCreate: bool) -> None:
         os.makedirs(folder_path)
 
 
-def check_if_data_available(batches: list, url: str) -> list:
+def get_new_batches(batches: list, url: str) -> list:
     try:
         r = meteo_client.get(url, timeout=10)
         new_batches = []
@@ -345,7 +345,7 @@ def get_latest_theorical_batches(ctx: str) -> tuple[list, dict]:
             else:
                 test_batch = PACK["type_package"]
             if test_batch not in tested_batches:
-                tested_batches[test_batch] = check_if_data_available(
+                tested_batches[test_batch] = get_new_batches(
                     batches,
                     PACK["check_availability_url"],
                 )
