@@ -84,12 +84,10 @@ class Meteo_client(object):
         time.sleep(random.randint(1, 5))
         if "token.json" not in os.listdir():
             # Obtain new token
-            data = {'grant_type': 'client_credentials'}
-            headers = {'Authorization': 'Basic ' + APPLICATION_ID}
             access_token_response = requests.post(
                 "https://portail-api.meteofrance.fr/token",
-                data=data,
-                headers=headers
+                data={'grant_type': 'client_credentials'},
+                headers={'Authorization': 'Basic ' + APPLICATION_ID},
             )
             token = access_token_response.json()['access_token']
             with open("token.json", "w") as f:
