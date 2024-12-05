@@ -54,6 +54,12 @@ class MeteoClient(object):
 
     def __init__(self):
         self.session = requests.Session()
+        self.token_url = "https://portail-api.meteofrance.fr/token"
+        # this is just an example URL to check potential expiration
+        self.test_expiration_url = (
+            "https://public-api.meteofrance.fr/previnum/"
+            "DPPaquetWAVESMODELS/models/MFWAM/grids"
+        )
 
     def request(self, method, url, **kwargs):
         # First request will always need to obtain a token first
@@ -85,7 +91,7 @@ class MeteoClient(object):
         if "token.json" not in os.listdir():
             # Obtain new token
             access_token_response = requests.post(
-                "https://portail-api.meteofrance.fr/token",
+                self.token_url,
                 data={'grant_type': 'client_credentials'},
                 headers={'Authorization': 'Basic ' + APPLICATION_ID},
             )
@@ -100,11 +106,7 @@ class MeteoClient(object):
             with open("token.json", "r") as f:
                 token = json.load(f)["token"]
             self.session.headers.update({'Authorization': f'Bearer {token}'})
-            response = self.session.request(
-                "GET",
-                # this is just an example URL to check potential expiration
-                "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/MFWAM/grids",
-            )
+            response = self.session.request("GET", self.test_expiration_url)
             if self.token_has_expired(response):
                 logging.warning("Token has expired, fetching a fresh one")
                 os.remove("token.json")
