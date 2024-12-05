@@ -3,3 +3,4 @@ data/
 __pycache__/
 log.log
 guide.txt
+token.json
