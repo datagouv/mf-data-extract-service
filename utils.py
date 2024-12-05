@@ -111,7 +111,7 @@ class MeteoClient(object):
                 self.obtain_token()
 
 
-meteo_client = Meteo_client()
+meteo_client = MeteoClient()
 
 
 def send_files(
