@@ -82,6 +82,7 @@ class MeteoClient(object):
         content_type = response.headers['Content-Type']
         if status == 401 and 'application/json' in content_type:
             return any(k in response.json()['description'].lower() for k in ['invalid jwt token', 'invalid credentials'])
+        return False
 
     def obtain_token(self):
         # if threads are synchronous (for example on start), this should space them out
