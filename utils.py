@@ -290,8 +290,9 @@ def process_url(
     if test_file_structure(current_folder + "/" + meta_urls[url + ":filename"]):
         send_to_minio(url, meta_urls, current_folder)
     else:
-        logging.warning(meta_urls[url + ":filename"] + " is badly structured, deleting...")
-        os.remove(current_folder + "/" + meta_urls[url + ":filename"])
+        logging.warning(meta_urls[url + ":filename"] + " is badly structured, but sending anyway")
+        # os.remove(current_folder + "/" + meta_urls[url + ":filename"])
+        send_to_minio(url, meta_urls, current_folder)
         log_and_send_error(meta_urls[url + ":filename"])
 
 
