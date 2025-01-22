@@ -281,18 +281,43 @@ def log_and_send_error(filename):
     os.remove(LOG_PATH + log_name)
 
 
+def load_issues(current_folder):
+    # grib files sometimes have structural issues (cf test_file_structure)
+    # if so, we store them in a json file and we'll try to fetch them again
+    # and we'll update them if the retrieved versions are not corrupted
+    issues_file_name = current_folder.replace("data", "issues") + ".json"
+    if not os.path.isfile(issues_file_name):
+        with open(issues_file_name, "w") as f:
+            json.dump([], f)
+        return []
+    with open(issues_file_name, "r") as f:
+        issues = json.load(f)
+    return issues
+
+
+def save_issues(issues):
+    with open(issues, "w") as f:
+        json.dump(issues, f)
+
+
 def process_url(
     url: str,
     meta_urls: dict,
     current_folder: str,
 ) -> None:
     download_url(url, meta_urls, 5, current_folder)
+    issues = load_issues(current_folder)
     if test_file_structure(current_folder + "/" + meta_urls[url + ":filename"]):
         send_to_minio(url, meta_urls, current_folder)
-    else:
+        if url in issues:
+            issues.remove(url)
+            save_issues(issues)
+    elif url not in issues:
         logging.warning(meta_urls[url + ":filename"] + " is badly structured, but sending anyway")
         # os.remove(current_folder + "/" + meta_urls[url + ":filename"])
         send_to_minio(url, meta_urls, current_folder)
+        issues.append(url)
+        save_issues(issues)
         log_and_send_error(meta_urls[url + ":filename"])
 
 
@@ -367,7 +392,8 @@ def does_file_exist_in_minio(file: str, bucket: str = MINIO_BUCKET) -> bool:
 
 def construct_all_possible_files(
     batches: list,
-    tested_batches: dict
+    tested_batches: dict,
+    current_folder: str,
 ) -> tuple[dict, dict]:
     list_files = []
     meta_urls = {}
@@ -442,9 +468,14 @@ def construct_all_possible_files(
 
     logging.info(str(len(list_files)) + " possible files")
 
+    issues = load_issues(current_folder)
     to_get = [
-        f for f in minio_paths
-        if not does_file_exist_in_minio(f)
+        minio_path for minio_path in minio_paths
+        if (
+            not does_file_exist_in_minio(minio_path)
+            # the urls are stored in issues, we get them from the minio path
+            or meta_urls[minio_path+":url"] in issues
+        )
     ]
 
     logging.info(

@@ -46,7 +46,11 @@ if __name__ == "__main__":
 
         logging.info("---- Construct all possible files ----")
         try:
-            result = construct_all_possible_files(batches, tested_batches)
+            result = construct_all_possible_files(
+                batches,
+                tested_batches,
+                current_folder,
+            )
         except TypeError as e:
             result = None
             logging.warning(f"Error constructing files: {e}")
