@@ -295,8 +295,9 @@ def load_issues(current_folder: str) -> list:
     return issues
 
 
-def save_issues(issues: list) -> None:
-    with open(issues, "w") as f:
+def save_issues(issues: list, current_folder: str) -> None:
+    issues_file_name = current_folder.replace("data", "issues") + ".json"
+    with open(issues_file_name, "w") as f:
         json.dump(issues, f)
 
 
@@ -311,13 +312,13 @@ def process_url(
         send_to_minio(url, meta_urls, current_folder)
         if url in issues:
             issues.remove(url)
-            save_issues(issues)
+            save_issues(issues, current_folder)
     elif url not in issues:
         logging.warning(meta_urls[url + ":filename"] + " is badly structured, but sending anyway")
         # os.remove(current_folder + "/" + meta_urls[url + ":filename"])
         send_to_minio(url, meta_urls, current_folder)
         issues.append(url)
-        save_issues(issues)
+        save_issues(issues, current_folder)
         log_and_send_error(meta_urls[url + ":filename"])
 
 
