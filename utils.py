@@ -281,7 +281,7 @@ def log_and_send_error(filename):
     os.remove(LOG_PATH + log_name)
 
 
-def load_issues(current_folder):
+def load_issues(current_folder: str) -> list:
     # grib files sometimes have structural issues (cf test_file_structure)
     # if so, we store them in a json file and we'll try to fetch them again
     # and we'll update them if the retrieved versions are not corrupted
@@ -295,7 +295,7 @@ def load_issues(current_folder):
     return issues
 
 
-def save_issues(issues):
+def save_issues(issues: list) -> None:
     with open(issues, "w") as f:
         json.dump(issues, f)
 
