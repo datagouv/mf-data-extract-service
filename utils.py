@@ -279,6 +279,7 @@ def log_and_send_error(filename):
         ],
     )
     os.remove(LOG_PATH + log_name)
+    logging.info(f"Sent and locally erased log for {filepath}")
 
 
 def load_issues(current_folder: str) -> list:
@@ -297,6 +298,7 @@ def load_issues(current_folder: str) -> list:
 
 def save_issues(issues: list, current_folder: str) -> None:
     issues_file_name = current_folder.replace("data", "issues") + ".json"
+    logging.info(f"Dumping issues with {issues}")
     with open(issues_file_name, "w") as f:
         json.dump(issues, f)
 
@@ -320,6 +322,8 @@ def process_url(
         issues.append(url)
         save_issues(issues, current_folder)
         log_and_send_error(meta_urls[url + ":filename"])
+    else:
+        logging.info(f"This file is an already known issue, passing")
 
 
 def remove_and_create_folder(folder_path: str, toCreate: bool) -> None:
