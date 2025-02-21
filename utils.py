@@ -279,7 +279,7 @@ def log_and_send_error(filename):
         ],
     )
     os.remove(LOG_PATH + log_name)
-    logging.info(f"Sent and locally erased log for {filepath}")
+    logging.info(f"Sent and locally erased log for {filename}")
 
 
 def load_issues(current_folder: str) -> list:
