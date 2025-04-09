@@ -74,35 +74,36 @@ PACKAGES = [
             }
         ]
     },
-    {
-        "type_package": "vague-surcote",
-        "detail_package": "MFWAM",
-        "dataset_id_dev": "65b68c841a2bd22881b8e488",
-        "dataset_id_prod": "65bd19fe0d61026813636c33",
-        "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/MFWAM/grids",
-        "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/MFWAM/grids/0.5/packages/SP1",
-        "product": "productMFWAM",
-        "grid": "0.5",
-        "extension": "grib2",
-        "packages": [
-            {
-                "name": "SP1",
-                "time": [
-                    '001H', '002H', '003H', '004H', '005H', '006H', '007H', '008H', '009H',
-                    '010H', '011H', '012H', '013H', '014H', '015H', '016H', '017H', '018H', '019H',
-                    '020H', '021H', '022H', '023H', '024H', '025H', '026H', '027H', '028H', '029H',
-                    '030H', '031H', '032H', '033H', '034H', '035H', '036H', '037H', '038H', '039H',
-                    '040H', '041H', '042H', '043H', '044H', '045H', '046H', '047H', '048H',
-                    '051H', '054H', '057H',
-                    '060H', '063H', '066H', '069H',
-                    '072H', '075H', '078H',
-                    '081H', '084H', '087H',
-                    '090H', '093H', '096H', '099H',
-                    '102H'
-                ]
-            }
-        ]
-    },
+    # modèle arrêté en avril 2025
+    # {
+    #     "type_package": "vague-surcote",
+    #     "detail_package": "MFWAM",
+    #     "dataset_id_dev": "65b68c841a2bd22881b8e488",
+    #     "dataset_id_prod": "65bd19fe0d61026813636c33",
+    #     "base_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/MFWAM/grids",
+    #     "check_availability_url": "https://public-api.meteofrance.fr/previnum/DPPaquetWAVESMODELS/models/MFWAM/grids/0.5/packages/SP1",
+    #     "product": "productMFWAM",
+    #     "grid": "0.5",
+    #     "extension": "grib2",
+    #     "packages": [
+    #         {
+    #             "name": "SP1",
+    #             "time": [
+    #                 '001H', '002H', '003H', '004H', '005H', '006H', '007H', '008H', '009H',
+    #                 '010H', '011H', '012H', '013H', '014H', '015H', '016H', '017H', '018H', '019H',
+    #                 '020H', '021H', '022H', '023H', '024H', '025H', '026H', '027H', '028H', '029H',
+    #                 '030H', '031H', '032H', '033H', '034H', '035H', '036H', '037H', '038H', '039H',
+    #                 '040H', '041H', '042H', '043H', '044H', '045H', '046H', '047H', '048H',
+    #                 '051H', '054H', '057H',
+    #                 '060H', '063H', '066H', '069H',
+    #                 '072H', '075H', '078H',
+    #                 '081H', '084H', '087H',
+    #                 '090H', '093H', '096H', '099H',
+    #                 '102H'
+    #             ]
+    #         }
+    #     ]
+    # },
     {
         "type_package": "vague-surcote",
         "detail_package": "WW3-MARP",
